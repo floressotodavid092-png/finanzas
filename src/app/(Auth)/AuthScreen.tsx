@@ -1,9 +1,10 @@
-import { StyleSheet, Text, View } from 'react-native'
+import LoginScreen from '@/components/screens/LoginScreen'
+import { StyleSheet, View } from 'react-native'
 
 const AuthScreen = () => {
   return (
     <View>
-      <Text>AuthScreen</Text>
+      <LoginScreen />
     </View>
   )
 }
