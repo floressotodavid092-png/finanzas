@@ -13,6 +13,9 @@ const LoginScreen = () => {
 
   return (
     <View className="px-4 gap-4">
+      <Text className="text-[16px] font-bold text-center text-gray-700">
+        Sign In to your account
+      </Text>
       <InputField
         icon="mail"
         placeholder="Enter your email"
