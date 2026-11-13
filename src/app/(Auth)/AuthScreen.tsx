@@ -1,9 +1,19 @@
 import { LinearGradient } from "expo-linear-gradient";
 import Lottie from "lottie-react-native";
-import { View } from "react-native";
+import { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  View,
+} from "react-native";
+import LoginScreen from "../../components/screens/LoginScreen";
 import SignupScreen from "../../components/screens/SignupScreen";
 
 const AuthScreen = () => {
+  const [activeTab, setActiveTab] = useState("Login");
+  const isLogin = activeTab === "Login";
+
   return (
     <View className="flex-1">
       <LinearGradient
@@ -15,12 +25,24 @@ const AuthScreen = () => {
         <Lottie
           source={require("../../../assets/animations/budget-report.json")}
           autoPlay
+          loop
           resizeMode="contain"
-          style={{width: "90%", height: "90%" }}
+          style={{ width: "90%", height: "90%" }}
         />
       </View>
       <View className="flex-[6] bg-white px-4 rounded-t-[50px]">
-        <SignupScreen />
+        <KeyboardAvoidingView
+          behavior="padding"
+          keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+          style={{ flex: 1 }}
+        >
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {isLogin ? <LoginScreen /> : <SignupScreen />}
+          </ScrollView>
+        </KeyboardAvoidingView>
       </View>
     </View>
   );
