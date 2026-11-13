@@ -20,7 +20,7 @@ const InputField = ({
   const [hidePassword, setHidePassword] = useState<boolean>(secureTextEntry);
 
   return (
-    <View className="flex-row items-center justify-center border border-gray-100 rounded-full">
+    <View className="flex-row px-4 items-center justify-center border border-gray-100 rounded-full">
       {icon && (
         <Ionicons
           name={icon}
