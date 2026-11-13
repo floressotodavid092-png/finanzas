@@ -5,6 +5,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import LoginScreen from "../../components/screens/LoginScreen";
@@ -41,6 +43,18 @@ const AuthScreen = () => {
             showsVerticalScrollIndicator={false}
           >
             {isLogin ? <LoginScreen /> : <SignupScreen />}
+            <View className="flex-row justify-center pt-2">
+              <Text>
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setActiveTab(isLogin ? "Signup" : "Login")}
+              >
+                <Text className="text-primary font-semibold underline">
+                  {isLogin ? "Sign Up" : "Login"}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
