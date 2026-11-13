@@ -1,14 +1,12 @@
-import LoginScreen from '@/components/screens/LoginScreen'
-import { StyleSheet, View } from 'react-native'
+import { View } from "react-native";
+import LoginScreen from "../../components/screens/LoginScreen";
 
 const AuthScreen = () => {
   return (
-    <View>
+    <View className="flex-1 justify-center">
       <LoginScreen />
     </View>
-  )
-}
+  );
+};
 
-export default AuthScreen
-
-const styles = StyleSheet.create({})
+export default AuthScreen;

@@ -1,14 +1,20 @@
-import { StyleSheet, View } from 'react-native'
-import InputField from '../Forms/InputField'
+import { useState } from "react";
+import { View } from "react-native";
+import InputField from "../Forms/InputField";
 
 const LoginScreen = () => {
+  const [email, setEmail] = useState("");
+
   return (
     <View>
-      <InputField />
+      <InputField
+        icon="mail-outline"
+        placeholder="Correo"
+        value={email}
+        onChangeText={setEmail}
+      />
     </View>
-  )
-}
+  );
+};
 
-export default LoginScreen
-
-const styles = StyleSheet.create({})
+export default LoginScreen;
