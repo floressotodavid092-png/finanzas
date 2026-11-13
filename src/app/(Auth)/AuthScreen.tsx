@@ -13,7 +13,7 @@ const AuthScreen = () => {
       />
       <View className="flex-[4] items-center justify-center">
         <Lottie
-          source={require("../../../assets/animations/bill-payment.json")}
+          source={require("../../../assets/animations/budget-report.json")}
           autoPlay
           resizeMode="contain"
           style={{width: "90%", height: "90%" }}
