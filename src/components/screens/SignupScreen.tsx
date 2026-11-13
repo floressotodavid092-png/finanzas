@@ -11,7 +11,7 @@ const SignupScreen = () => {
   const [name, setName] = useState("");
 
   return (
-    <View className="px-4 gap-4">
+    <View className="px-4 gap-4 mt-8">
       <Text className="text-[16px] font-bold text-center text-gray-700">
         Create an account
       </Text>
