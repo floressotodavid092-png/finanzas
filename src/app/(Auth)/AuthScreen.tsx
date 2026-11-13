@@ -1,10 +1,10 @@
 import { View } from "react-native";
-import LoginScreen from "../../components/screens/LoginScreen";
+import SignupScreen from "../../components/screens/SignupScreen";
 
 const AuthScreen = () => {
   return (
     <View className="flex-1 justify-center">
-      <LoginScreen />
+      <SignupScreen />
     </View>
   );
 };
