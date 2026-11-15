@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -7,6 +8,7 @@ import SocialButton from "../Buttons/SocialButton";
 import InputField from "../Forms/InputField";
 
 const LoginScreen = () => {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { google } = socialImages;
@@ -36,7 +38,7 @@ const LoginScreen = () => {
       </TouchableOpacity>
       <PrimaryButton
         title="Login"
-        onPress={() => console.log("Login Button Pressed")}
+        onPress={() => router.replace("/home")}
       />
       <View className="flex-row justify-center items-center">
         <View className="flex-1 h-[1px] bg-gray-300" />
