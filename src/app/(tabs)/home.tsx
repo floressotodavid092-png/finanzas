@@ -7,7 +7,7 @@ import { ActivityIndicator, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
-  const { expenses, fetchExpense, isFetching } = useTransaction();
+  const { expenses, fetchExpense, isFetching, deleteExpense } = useTransaction();
 
   useEffect(() => {
     fetchExpense();
@@ -29,6 +29,7 @@ const Home = () => {
               category={item.category}
               amount={item.amount}
               description={item.description}
+              onDelete={() => deleteExpense(item.id)}
             />
           ))
         ) : (

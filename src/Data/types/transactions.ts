@@ -3,6 +3,7 @@ export type Transaction = {
   amount: number;
   category: string;
   description?: string | null;
+  onDelete:()=>void;
 };
 
 export type TransactionInput = {

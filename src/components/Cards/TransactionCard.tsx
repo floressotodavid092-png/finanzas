@@ -1,7 +1,12 @@
 import { Transaction } from "@/Data/types/transactions";
-import { Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Text, TouchableOpacity, View } from "react-native";
 
-const TransactionCard = ({ amount, category, description }: Transaction) => {
+type TransactionCardProps = Transaction & {
+  onDelete: () => void;
+};
+
+const TransactionCard = ({ amount, category, description, onDelete }: TransactionCardProps) => {
   return (
     <View className="w-full border border-gray-300 bg-white p-4 rounded-xl border-l-4 border-l-red-500">
       <View className="flex-row justify-between">
@@ -10,6 +15,12 @@ const TransactionCard = ({ amount, category, description }: Transaction) => {
       </View>
 
       <Text>{description}</Text>
+
+      <View className="flex-row justify-end">
+        <TouchableOpacity onPress={onDelete}>
+          <Ionicons name="trash" size={24} color="red" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

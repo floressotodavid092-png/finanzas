@@ -51,5 +51,20 @@ export const useTransaction = () => {
     setLoading(false);
   };
 
-  return { expenses, fetchExpense, isFetching, loading, addExpense };
+  const deleteExpense = async (id: number) => {
+    const { error } = await supabase
+      .from("expenses")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.log("Failed to delete expense: ", error.message);
+      return;
+    }
+
+    setExpenses((current) => current.filter((expense) => expense.id !== id));
+    console.log("Expense is deleted successfully!");
+  };
+
+  return { expenses, fetchExpense, isFetching, loading, addExpense, deleteExpense };
 };
