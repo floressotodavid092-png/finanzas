@@ -38,7 +38,7 @@ const LoginScreen = () => {
       </TouchableOpacity>
       <PrimaryButton
         title="Login"
-        onPress={() => router.replace("/home")}
+        onPress={() => router.replace("/(tabs)/home")}
       />
       <View className="flex-row justify-center items-center">
         <View className="flex-1 h-[1px] bg-gray-300" />
