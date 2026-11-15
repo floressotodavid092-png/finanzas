@@ -1,4 +1,5 @@
 import TransactionCard from "@/components/Cards/TransactionCard";
+import TransactionForm from "@/components/Forms/TransactionForm";
 import Header from "@/components/HomeScreen/Header";
 import { useTransaction } from "@/hooks/useTranasaction";
 import { useEffect } from "react";
@@ -15,7 +16,9 @@ const Home = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Header />
-      <View className="px-4 mt-4">
+      <View className="px-4 mt-4 gap-2">
+        <TransactionForm onSuccess={fetchExpense} />
+        <Text className="text-xl font-semibold">Today's Expenses</Text>
         {isFetching ? (
           <ActivityIndicator size="large" color="red" style={{ marginTop: 40 }} />
         ) : expenses.length > 0 ? (
@@ -29,7 +32,7 @@ const Home = () => {
             />
           ))
         ) : (
-          <Text>No expenses found</Text>
+          <Text className="text-center mt-4">No expenses found</Text>
         )}
       </View>
     </SafeAreaView>
