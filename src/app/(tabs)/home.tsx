@@ -1,13 +1,15 @@
 import TransactionCard from "@/components/Cards/TransactionCard";
 import TransactionForm from "@/components/Forms/TransactionForm";
 import Header from "@/components/HomeScreen/Header";
+import { Transaction } from "@/Data/types/transactions";
 import { useTransaction } from "@/hooks/useTranasaction";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
   const { expenses, fetchExpense, isFetching, deleteExpense } = useTransaction();
+  const [editingItem, setEditingItem] = useState<Transaction | null>(null);
 
   useEffect(() => {
     fetchExpense();
@@ -17,7 +19,11 @@ const Home = () => {
     <SafeAreaView style={{ flex: 1 }}>
       <Header />
       <View className="px-4 mt-4 gap-2">
-        <TransactionForm onSuccess={fetchExpense} />
+        <TransactionForm
+          onSuccess={fetchExpense}
+          editingItem={editingItem}
+          clearEditing={() => setEditingItem(null)}
+        />
         <Text className="text-xl font-semibold">Today's Expenses</Text>
         {isFetching ? (
           <ActivityIndicator size="large" color="red" style={{ marginTop: 40 }} />
@@ -30,6 +36,7 @@ const Home = () => {
               amount={item.amount}
               description={item.description}
               onDelete={() => deleteExpense(item.id)}
+              onEdit={() => setEditingItem(item)}
             />
           ))
         ) : (

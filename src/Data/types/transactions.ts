@@ -4,6 +4,7 @@ export type Transaction = {
   category: string;
   description?: string | null;
   onDelete:()=>void;
+  onEdit:()=>void;
 };
 
 export type TransactionInput = {

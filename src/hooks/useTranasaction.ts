@@ -66,5 +66,31 @@ export const useTransaction = () => {
     console.log("Expense is deleted successfully!");
   };
 
-  return { expenses, fetchExpense, isFetching, loading, addExpense, deleteExpense };
+  const updateExpense = async (
+    id: number,
+    updateData: {
+      amount: number;
+      category: string;
+      description: string;
+    }
+  ) => {
+    const { data, error } = await supabase
+      .from("expenses")
+      .update(updateData)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.log("Failed to update expense: ", error.message);
+      return;
+    }
+
+    setExpenses((current) =>
+      current.map((expense) => (expense.id === id ? data : expense))
+    );
+    console.log("Expense is updated successfully!");
+  };
+
+  return { expenses, fetchExpense, isFetching, loading, addExpense, deleteExpense, updateExpense };
 };

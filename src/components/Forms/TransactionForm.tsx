@@ -1,17 +1,28 @@
+import { Transaction } from "@/Data/types/transactions";
 import { useTransaction } from "@/hooks/useTranasaction";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Text, TextInput, View } from "react-native";
 
 type TransactionFormProps = {
   onSuccess: () => void;
+  editingItem: Transaction | null;
+  clearEditing: () => void;
 };
 
-const TransactionForm = ({ onSuccess }: TransactionFormProps) => {
-  const { addExpense, loading } = useTransaction();
+const TransactionForm = ({ onSuccess, editingItem, clearEditing }: TransactionFormProps) => {
+  const { addExpense, loading, updateExpense } = useTransaction();
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (editingItem) {
+      setAmount(editingItem.amount.toString());
+      setCategory(editingItem.category);
+      setDescription(editingItem.description || "");
+    }
+  }, [editingItem]);
 
   const handleAddExpense = async () => {
     if (!category || !amount) {
@@ -22,18 +33,33 @@ const TransactionForm = ({ onSuccess }: TransactionFormProps) => {
       setError("Please enter a valid amount");
       return;
     }
-
-    await addExpense({
-      amount: Number(amount),
-      category,
-      description,
-    });
+    if (editingItem) {
+      await updateExpense(editingItem.id, {
+        amount: Number(amount),
+        category,
+        description,
+      });
+      clearEditing();
+    } else {
+      await addExpense({
+        amount: Number(amount),
+        category,
+        description,
+      });
+    }
 
     setError("");
     setAmount("");
     setCategory("");
     setDescription("");
     onSuccess();
+  };
+
+  const handleCancel = () => {
+    setAmount("");
+    setCategory("");
+    setDescription("");
+    clearEditing();
   };
 
   return (
@@ -57,10 +83,27 @@ const TransactionForm = ({ onSuccess }: TransactionFormProps) => {
         value={description}
         onChangeText={setDescription}
       />
-      <Button
-        title={loading ? "Adding..." : "Add Expense"}
-        onPress={handleAddExpense}
-      />
+      <View className="flex-row justify-between w-full">
+        {editingItem && (
+          <View className="flex-1 mr-2">
+            <Button title="Cancel" onPress={handleCancel} color="gray" />
+          </View>
+        )}
+        <View className="flex-1">
+          <Button
+            title={
+              loading
+                ? editingItem
+                  ? "Updating..."
+                  : "Adding..."
+                : editingItem
+                ? "Update"
+                : "Add Expense"
+            }
+            onPress={handleAddExpense}
+          />
+        </View>
+      </View>
     </View>
   );
 };
