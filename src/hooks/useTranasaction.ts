@@ -1,18 +1,28 @@
+import { Transaction } from "@/Data/types/transactions";
 import { supabase } from "@/lib/supabase";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
-const useTransaction = () => {
-    const[expenses,setExpense]= useState([])
+export const useTransaction = () => {
+  const [expenses, setExpenses] = useState<Transaction[]>([]);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
 
-     const fetchExpense=async()=>
-        const{data,error}= await supabase
-        .from('expenses')
-        .select(*)
-        .order('id',{ascending:true})
+  const fetchExpense = useCallback(async () => {
+    setIsFetching(true);
 
-        if(error){
-            console.log/("Failed to fetch expense: ",error.message);
-            return
-        }
-        setExpense(data||[])
+    const { data, error } = await supabase
+      .from("expenses")
+      .select("*")
+      .order("id", { ascending: true });
+
+    if (error) {
+      console.log("Failed to fetch expense: ", error.message);
+      setIsFetching(false);
+      return;
     }
+
+    setExpenses((data as Transaction[]) ?? []);
+    setIsFetching(false);
+  }, []);
+
+  return { expenses, fetchExpense, isFetching };
+};
