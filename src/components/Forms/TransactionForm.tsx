@@ -26,11 +26,11 @@ const TransactionForm = ({ onSuccess, editingItem, clearEditing }: TransactionFo
 
   const handleAddExpense = async () => {
     if (!category || !amount) {
-      setError("Please enter the details");
+      setError("Por favor, introduce los datos");
       return;
     }
     if (isNaN(Number(amount)) || Number(amount) <= 0) {
-      setError("Please enter a valid amount");
+      setError("Por favor, introduce una cantidad válida");
       return;
     }
     if (editingItem) {
@@ -67,19 +67,19 @@ const TransactionForm = ({ onSuccess, editingItem, clearEditing }: TransactionFo
       {error ? <Text className="text-red-500">{error}</Text> : null}
       <TextInput
         className="border border-gray-300 rounded-xl px-4"
-        placeholder="Enter the amount $"
+        placeholder="Ingrese el monto $"
         value={amount}
         onChangeText={setAmount}
       />
       <TextInput
         className="border border-gray-300 rounded-xl px-4"
-        placeholder="Enter the category"
+        placeholder="Introduce la categoría"
         value={category}
         onChangeText={setCategory}
       />
       <TextInput
         className="border border-gray-300 rounded-xl px-4"
-        placeholder="Enter the description"
+        placeholder="Introduce la descripción"
         value={description}
         onChangeText={setDescription}
       />

@@ -17,26 +17,26 @@ const SignupScreen = () => {
       </Text>
       <InputField
         icon="person"
-        placeholder="Enter your name"
+        placeholder="Introduce tu nombre"
         value={name}
         onChangeText={setName}
       />
       <InputField
         icon="mail"
-        placeholder="Enter your email"
+        placeholder="Introduce tu correo electrónico"
         value={email}
         onChangeText={setEmail}
       />
       <InputField
         icon="lock-closed"
-        placeholder="Enter your password"
+        placeholder="Introduce tu contraseña"
         value={password}
         onChangeText={setPassword}
         secureTextEntry={true}
       />
       <InputField
         icon="lock-closed"
-        placeholder="Confirm your password"
+        placeholder="Confirma tu contraseña"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry={true}
@@ -44,7 +44,7 @@ const SignupScreen = () => {
 
       <PrimaryButton
         title="Sign Up"
-        onPress={() => console.log("Sign Up Button Pressed")}
+        onPress={() => console.log("Se ha pulsado el botón de registro")}
       />
     </View>
   );

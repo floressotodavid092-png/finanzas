@@ -1,6 +1,6 @@
 export const onboardingData = [
   {
-    backgroundColor: "#fff",
+    backgroundColor: "#72d5f9",
     title: "Smart Budgeting",
     subtitle: "Track your expenses with ease",
     lottie: require("../../assets/animations/bill-payment.json"),

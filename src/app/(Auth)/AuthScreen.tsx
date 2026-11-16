@@ -45,7 +45,7 @@ const AuthScreen = () => {
             {isLogin ? <LoginScreen /> : <SignupScreen />}
             <View className="flex-row justify-center pt-2">
               <Text>
-                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                {isLogin ? "¿No tienes una cuenta? " : "¿Ya tienes una cuenta? "}
               </Text>
               <TouchableOpacity
                 onPress={() => setActiveTab(isLogin ? "Signup" : "Login")}

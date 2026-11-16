@@ -16,13 +16,13 @@ export const useTransaction = () => {
       .order("id", { ascending: true });
 
     if (error) {
-      console.log("Failed to fetch expense: ", error.message);
+      console.log("No se pudo obtener el gasto: ", error.message);
       setIsFetching(false);
       return;
     }
 
     setExpenses(data || []);
-    console.log("Expenses fetched: ", data);
+    console.log("Gastos recuperados: ", data);
     setIsFetching(false);
   }, []);
 
@@ -41,13 +41,13 @@ export const useTransaction = () => {
       ]);
 
     if (error) {
-      console.log("Failed to add expense: ", error.message);
+      console.log("No se pudo añadir el gasto: ", error.message);
       setLoading(false);
       return;
     }
 
     await fetchExpense();
-    console.log("Expense is added successfully! ", data);
+    console.log("El gasto se ha añadido correctamente! ", data);
     setLoading(false);
   };
 
@@ -58,12 +58,12 @@ export const useTransaction = () => {
       .eq("id", id);
 
     if (error) {
-      console.log("Failed to delete expense: ", error.message);
+      console.log("No se pudo eliminar el gasto: ", error.message);
       return;
     }
 
     setExpenses((current) => current.filter((expense) => expense.id !== id));
-    console.log("Expense is deleted successfully!");
+    console.log("El gasto se ha eliminado correctamente!");
   };
 
   const updateExpense = async (
@@ -82,14 +82,14 @@ export const useTransaction = () => {
       .single();
 
     if (error) {
-      console.log("Failed to update expense: ", error.message);
+      console.log("No se pudo actualizar el gasto: ", error.message);
       return;
     }
 
     setExpenses((current) =>
       current.map((expense) => (expense.id === id ? data : expense))
     );
-    console.log("Expense is updated successfully!");
+    console.log("El gasto se ha actualizado correctamente!");
   };
 
   return { expenses, fetchExpense, isFetching, loading, addExpense, deleteExpense, updateExpense };

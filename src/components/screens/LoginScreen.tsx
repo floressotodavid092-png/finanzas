@@ -20,13 +20,13 @@ const LoginScreen = () => {
       </Text>
       <InputField
         icon="mail"
-        placeholder="Enter your email"
+        placeholder="Introduce tu correo electrónico"
         value={email}
         onChangeText={setEmail}
       />
       <InputField
         icon="lock-closed"
-        placeholder="Enter your password"
+        placeholder="Introduce tu contraseña"
         value={password}
         onChangeText={setPassword}
         secureTextEntry={true}
