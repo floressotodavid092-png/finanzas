@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import LoginScreen from "../../components/screens/LoginScreen";
-import SignupScreen from "../../components/screens/SignupScreen";
+import SignupScreen from "../../components/screens/SignupScreen.js";
 
 const AuthScreen = () => {
   const [activeTab, setActiveTab] = useState("Login");

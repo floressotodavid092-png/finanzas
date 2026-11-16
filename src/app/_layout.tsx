@@ -2,7 +2,7 @@ import { AuthProvider, useAuth } from "@/context/AuthProvider";
 import { Stack, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import "../gloabl.css";
+import "./global.css";
 
 function RootNavigation() {
     const { session, loading } = useAuth();

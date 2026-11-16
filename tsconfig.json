@@ -17,5 +17,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"
-  ]
+, "src/components/screens/SignupScreen.js", "src/components/screens/LoginScreen.js"  ]
 }
