@@ -1,13 +1,46 @@
-import { Stack } from "expo-router";
-import "./global.css";
+import { AuthProvider, useAuth } from "@/context/AuthProvider";
+import { Stack, useRouter } from "expo-router";
+import { useEffect } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import "../gloabl.css";
 
-export default function RootLayout() {
-  return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-      <Stack.Screen name="(Auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
-  );
+function RootNavigation() {
+    const { session, loading } = useAuth();
+
+    const router = useRouter();
+
+    useEffect(() => {
+
+        if (loading) return;
+
+        if (session) {
+            router.replace('/(tabs)/home')
+        }
+        else {
+            router.replace('/(Auth)/AuthScreen')
+        }
+    }, [session, loading])
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator color={"blue"} size={"large"} />
+            </View>
+        )
+    }
+    return <Stack screenOptions={{ headerShown: false }} />
 }
+export default function RootLayout() {
+    return (
+        <AuthProvider>
+            <RootNavigation />
+        </AuthProvider>
+    )
+}
+
+const styles = StyleSheet.create({
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    }
+})
