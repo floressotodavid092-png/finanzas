@@ -1,75 +1,64 @@
-import { Transaction, TransactionInput } from "@/Data/types/transactions";
+import { Movement, MovementInput } from "@/Data/types/transactions";
 import { supabase } from "@/lib/supabase";
 import { useCallback, useState } from "react";
 
 // Los errores de Supabase se PROPAGAN (throw) para que quien llama
 // (formulario / pantalla) sepa si la operación realmente se guardó.
 export const useTransaction = () => {
-  const [expenses, setExpenses] = useState<Transaction[]>([]);
+  const [movements, setMovements] = useState<Movement[]>([]);
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const fetchExpense = useCallback(async () => {
+  const fetchMovements = useCallback(async () => {
     setIsFetching(true);
     try {
       const { data, error } = await supabase
-        .from("expenses")
-        .select("*")
-        .order("id", { ascending: true });
+        .from("movements")
+        .select("*, categories(name)")
+        .order("date", { ascending: false })
+        .order("id", { ascending: false });
       if (error) throw error;
-      setExpenses(data || []);
+      setMovements((data as Movement[]) || []);
     } catch (error: any) {
-      console.log("No se pudieron obtener los gastos: ", error.message);
+      console.log("No se pudieron obtener los movimientos: ", error.message);
       throw error;
     } finally {
       setIsFetching(false);
     }
   }, []);
 
-  const addExpense = async ({ amount, category, description }: TransactionInput) => {
+  const addMovement = async (input: MovementInput) => {
     if (loading) return;
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from("expenses")
-        .insert([{ amount: Number(amount), category, description }]);
+      const { error } = await supabase.from("movements").insert([input]);
       if (error) throw error;
-      await fetchExpense();
+      await fetchMovements();
     } catch (error: any) {
-      console.log("No se pudo añadir el gasto: ", error.message);
+      console.log("No se pudo añadir el movimiento: ", error.message);
       throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteExpense = async (id: number) => {
-    const { error } = await supabase.from("expenses").delete().eq("id", id);
+  const deleteMovement = async (id: number) => {
+    const { error } = await supabase.from("movements").delete().eq("id", id);
     if (error) {
-      console.log("No se pudo eliminar el gasto: ", error.message);
+      console.log("No se pudo eliminar el movimiento: ", error.message);
       throw error;
     }
-    setExpenses((current) => current.filter((expense) => expense.id !== id));
+    setMovements((current) => current.filter((m) => m.id !== id));
   };
 
-  const updateExpense = async (
-    id: number,
-    updateData: { amount: number; category: string; description: string }
-  ) => {
-    const { data, error } = await supabase
-      .from("expenses")
-      .update(updateData)
-      .eq("id", id)
-      .select()
-      .single();
+  const updateMovement = async (id: number, updateData: MovementInput) => {
+    const { error } = await supabase.from("movements").update(updateData).eq("id", id);
     if (error) {
-      console.log("No se pudo actualizar el gasto: ", error.message);
+      console.log("No se pudo actualizar el movimiento: ", error.message);
       throw error;
     }
-    setExpenses((current) =>
-      current.map((expense) => (expense.id === id ? data : expense))
-    );
+    await fetchMovements();
   };
 
-  return { expenses, fetchExpense, isFetching, loading, addExpense, deleteExpense, updateExpense };
+  return { movements, fetchMovements, isFetching, loading, addMovement, deleteMovement, updateMovement };
 };

@@ -6,7 +6,7 @@ interface AuthContextType {
     session: Session | null;
     loading: boolean;
 
-    signUp:(email:string,password:string,fullName?:string)=>Promise<void>;
+    signUp:(email:string,password:string,fullName?:string)=>Promise<{ needsConfirmation: boolean }>;
     signIn:(email:string,password:string)=>Promise<void>;
     signOut:()=>Promise<void>;
 }
@@ -42,7 +42,7 @@ export const AuthProvider = ({children}:{children:React.ReactNode;}) => {
     },[])
 
     const signUp = async (email: string, password: string, fullName?: string) => {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: { data: { full_name: fullName } },
@@ -50,10 +50,18 @@ export const AuthProvider = ({children}:{children:React.ReactNode;}) => {
         if (error) {
             throw error;
         }
+        // Sin sesión = Supabase exige confirmar el correo antes de iniciar sesión.
+        return { needsConfirmation: !data.session }
     }
     const signIn = async (email: string, password: string) => {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) {
+            if (error.code === "email_not_confirmed") {
+                throw new Error("Debes confirmar tu correo. Revisa tu bandeja (y spam) y abre el enlace de confirmación.")
+            }
+            if (error.code === "invalid_credentials") {
+                throw new Error("Correo o contraseña incorrectos.")
+            }
             throw error;
         }
     }

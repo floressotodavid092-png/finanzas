@@ -1,509 +1,979 @@
-diff -ruN '--exclude=node_modules' a/src/Data/onboardingData.ts b/src/Data/onboardingData.ts
---- a/src/Data/onboardingData.ts	2026-11-16 20:20:31.439912959 -0600
-+++ b/src/Data/onboardingData.ts	2026-11-16 20:20:31.485093656 -0600
-@@ -1,20 +1,20 @@
- export const onboardingData = [
-   {
-     backgroundColor: "#72d5f9",
--    title: "Smart Budgeting",
--    subtitle: "Track your expenses with ease",
-+    title: "Presupuesto inteligente",
-+    subtitle: "Controla tus gastos con facilidad",
-     lottie: require("../../assets/animations/bill-payment.json"),
-   },
-   {
-     backgroundColor: "#f791f2",
--    title: "Monthly Planning",
-+    title: "Planeación mensual",
-     subtitle: "Organiza tus finanzas y guarda tu futuro",
-     lottie: require("../../assets/animations/budget-contactless.json"),
-   },
-   {
-     backgroundColor: "#ffc58b",
--    title: "Insightful Analytics",
--    subtitle: "Visualize your spending habits with real time data",
-+    title: "Estadísticas claras",
-+    subtitle: "Visualiza tus hábitos de gasto en tiempo real",
-     lottie: require("../../assets/animations/budget-report.json"),
-   },
- ];
-\ No newline at end of file
-diff -ruN '--exclude=node_modules' a/src/app/(Auth)/AuthScreen.tsx b/src/app/(Auth)/AuthScreen.tsx
---- a/src/app/(Auth)/AuthScreen.tsx	2026-11-16 20:20:31.439991517 -0600
-+++ b/src/app/(Auth)/AuthScreen.tsx	2026-11-16 20:20:31.486217076 -0600
-@@ -51,7 +51,7 @@
-                 onPress={() => setActiveTab(isLogin ? "Signup" : "Login")}
-               >
-                 <Text className="text-primary font-semibold underline">
--                  {isLogin ? "Sign Up" : "Login"}
-+                  {isLogin ? "Regístrate" : "Inicia sesión"}
-                 </Text>
-               </TouchableOpacity>
-             </View>
-diff -ruN '--exclude=node_modules' a/src/app/(tabs)/_layout.tsx b/src/app/(tabs)/_layout.tsx
---- a/src/app/(tabs)/_layout.tsx	2026-11-16 20:20:31.440033589 -0600
-+++ b/src/app/(tabs)/_layout.tsx	2026-11-16 20:20:31.484102535 -0600
-@@ -13,10 +13,10 @@
- export default function TabsLayout() {
-   return (
-     <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: "#a3109c" }}>
--      <Tabs.Screen name="home" options={{ title: "Home", tabBarIcon: icon("home") }} />
--      <Tabs.Screen name="transactions" options={{ title: "Transactions", tabBarIcon: icon("swap-horizontal") }} />
--      <Tabs.Screen name="dataAnalytics" options={{ title: "Analytics", tabBarIcon: icon("bar-chart") }} />
--      <Tabs.Screen name="profile" options={{ title: "Profile", tabBarIcon: icon("person") }} />
-+      <Tabs.Screen name="home" options={{ title: "Inicio", tabBarIcon: icon("home") }} />
-+      <Tabs.Screen name="transactions" options={{ title: "Movimientos", tabBarIcon: icon("swap-horizontal") }} />
-+      <Tabs.Screen name="dataAnalytics" options={{ title: "Estadísticas", tabBarIcon: icon("bar-chart") }} />
-+      <Tabs.Screen name="profile" options={{ title: "Perfil", tabBarIcon: icon("person") }} />
-     </Tabs>
-   );
- }
-\ No newline at end of file
-diff -ruN '--exclude=node_modules' a/src/app/(tabs)/home.tsx b/src/app/(tabs)/home.tsx
---- a/src/app/(tabs)/home.tsx	2026-11-16 20:20:31.440050484 -0600
-+++ b/src/app/(tabs)/home.tsx	2026-11-16 20:20:31.483964781 -0600
-@@ -4,7 +4,7 @@
- import { Transaction } from "@/Data/types/transactions";
- import { useTransaction } from "@/hooks/useTranasaction";
- import { useEffect, useState } from "react";
--import { ActivityIndicator, Text, View } from "react-native";
-+import { ActivityIndicator, Alert, Text, View } from "react-native";
- import { SafeAreaView } from "react-native-safe-area-context";
- 
- const Home = () => {
-@@ -12,9 +12,17 @@
-   const [editingItem, setEditingItem] = useState<Transaction | null>(null);
- 
-   useEffect(() => {
--    fetchExpense();
-+    fetchExpense().catch(() => Alert.alert("Error", "No se pudieron cargar los gastos"));
-   }, [fetchExpense]);
- 
-+  const handleDelete = async (id: number) => {
-+    try {
-+      await deleteExpense(id);
-+    } catch (e: any) {
-+      Alert.alert("No se pudo eliminar", e?.message ?? "Error desconocido");
-+    }
-+  };
+diff --git a/database.sql b/database.sql
+new file mode 100644
+index 0000000..eb28526
+--- /dev/null
++++ b/database.sql
+@@ -0,0 +1,129 @@
++-- =====================================================================
++-- FINANZAS PERSONALES — Esquema completo (Supabase SQL Editor)
++-- Padres: auth.users -> profiles, categories
++-- Hija:   movements (user_id -> profiles, category_id -> categories)
++-- Re-ejecutable. OJO: elimina la tabla anterior public.expenses.
++-- =====================================================================
 +
-   return (
-     <SafeAreaView style={{ flex: 1 }}>
-       <Header />
-@@ -24,7 +32,7 @@
-           editingItem={editingItem}
-           clearEditing={() => setEditingItem(null)}
-         />
--        <Text className="text-xl font-semibold">Today's Expenses</Text>
-+        <Text className="text-xl font-semibold">Mis gastos</Text>
-         {isFetching ? (
-           <ActivityIndicator size="large" color="red" style={{ marginTop: 40 }} />
-         ) : expenses.length > 0 ? (
-@@ -35,12 +43,12 @@
-               category={item.category}
-               amount={item.amount}
-               description={item.description}
--              onDelete={() => deleteExpense(item.id)}
-+              onDelete={() => handleDelete(item.id)}
-               onEdit={() => setEditingItem(item)}
-             />
-           ))
-         ) : (
--          <Text className="text-center mt-4">No expenses found</Text>
-+          <Text className="text-center mt-4">No hay gastos registrados</Text>
-         )}
-       </View>
-     </SafeAreaView>
-diff -ruN '--exclude=node_modules' a/src/components/Forms/TransactionForm.tsx b/src/components/Forms/TransactionForm.tsx
---- a/src/components/Forms/TransactionForm.tsx	2026-11-16 20:20:31.440179468 -0600
-+++ b/src/components/Forms/TransactionForm.tsx	2026-11-16 20:20:31.482359176 -0600
-@@ -4,7 +4,7 @@
- import { Button, Text, TextInput, View } from "react-native";
- 
- type TransactionFormProps = {
--  onSuccess: () => void;
-+  onSuccess: () => void | Promise<void>;
-   editingItem: Transaction | null;
-   clearEditing: () => void;
- };
-@@ -33,19 +33,25 @@
-       setError("Por favor, introduce una cantidad válida");
-       return;
-     }
--    if (editingItem) {
--      await updateExpense(editingItem.id, {
--        amount: Number(amount),
--        category,
--        description,
--      });
--      clearEditing();
--    } else {
--      await addExpense({
--        amount: Number(amount),
--        category,
--        description,
--      });
-+    try {
-+      if (editingItem) {
-+        await updateExpense(editingItem.id, {
-+          amount: Number(amount),
-+          category,
-+          description,
-+        });
-+        clearEditing();
-+      } else {
-+        await addExpense({
-+          amount: Number(amount),
-+          category,
-+          description,
-+        });
-+      }
-+    } catch (e: any) {
-+      // Falló el guardado: se conservan los datos escritos.
-+      setError(`No se pudo guardar el gasto: ${e?.message ?? "error desconocido"}`);
-+      return;
-     }
- 
-     setError("");
-@@ -86,7 +92,7 @@
-       <View className="flex-row justify-between w-full">
-         {editingItem && (
-           <View className="flex-1 mr-2">
--            <Button title="Cancel" onPress={handleCancel} color="gray" />
-+            <Button title="Cancelar" onPress={handleCancel} color="gray" />
-           </View>
-         )}
-         <View className="flex-1">
-@@ -94,11 +100,11 @@
-             title={
-               loading
-                 ? editingItem
--                  ? "Updating..."
--                  : "Adding..."
-+                  ? "Actualizando..."
-+                  : "Agregando..."
-                 : editingItem
--                ? "Update"
--                : "Add Expense"
-+                ? "Actualizar"
-+                : "Agregar gasto"
-             }
-             onPress={handleAddExpense}
-           />
-diff -ruN '--exclude=node_modules' a/src/components/HomeScreen/Header.tsx b/src/components/HomeScreen/Header.tsx
---- a/src/components/HomeScreen/Header.tsx	2026-11-16 20:20:31.440198449 -0600
-+++ b/src/components/HomeScreen/Header.tsx	2026-11-16 20:20:31.482617991 -0600
-@@ -1,12 +1,17 @@
-+import { useAuth } from "@/context/AuthProvider";
- import { Text, View } from "react-native";
- 
- const Header = () => {
-+  const { user } = useAuth();
-+  const name =
-+    user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
++drop table if exists public.expenses;
 +
-   return (
-     <View className="px-4 py-3">
-       <Text className="text-gray-500">Bienvenido de nuevo</Text>
--      <Text className="text-lg font-bold">Hello, Deivid</Text>
-+      <Text className="text-lg font-bold">Hola, {name}</Text>
-     </View>
-   );
++create table if not exists public.profiles (
++  id          uuid primary key references auth.users (id) on delete cascade,
++  email       text,
++  full_name   text,
++  created_at  timestamptz not null default now()
++);
++
++-- Catálogo global (sin user_id)
++create table if not exists public.categories (
++  id          uuid primary key default gen_random_uuid(),
++  name        text not null unique,
++  type        text not null check (type in ('income','expense')),
++  created_at  timestamptz not null default now()
++);
++
++create table if not exists public.movements (
++  id           bigint generated always as identity primary key,
++  user_id      uuid not null default auth.uid()
++                 references public.profiles (id) on delete cascade,
++  category_id  uuid not null
++                 references public.categories (id) on delete restrict,
++  type         text not null check (type in ('income','expense')),
++  amount       numeric(12,2) not null check (amount > 0),
++  description  text check (description is null or char_length(description) <= 255),
++  date         date not null default current_date,
++  created_at   timestamptz not null default now()
++);
++
++create or replace function public.handle_new_user()
++returns trigger
++language plpgsql
++security definer
++set search_path = ''
++as $$
++begin
++  insert into public.profiles (id, email, full_name)
++  values (
++    new.id,
++    new.email,
++    coalesce(nullif(new.raw_user_meta_data ->> 'full_name', ''),
++             split_part(new.email, '@', 1))
++  )
++  on conflict (id) do nothing;
++  return new;
++end;
++$$;
++
++revoke execute on function public.handle_new_user() from public, anon, authenticated;
++
++drop trigger if exists on_auth_user_created on auth.users;
++create trigger on_auth_user_created
++  after insert on auth.users
++  for each row execute function public.handle_new_user();
++
++insert into public.profiles (id, email, full_name)
++select u.id, u.email,
++       coalesce(nullif(u.raw_user_meta_data ->> 'full_name', ''),
++                split_part(u.email, '@', 1))
++from auth.users u
++on conflict (id) do nothing;
++
++-- RLS
++alter table public.profiles   enable row level security;
++alter table public.categories enable row level security;
++alter table public.movements  enable row level security;
++
++drop policy if exists "profiles_select_own" on public.profiles;
++create policy "profiles_select_own" on public.profiles
++  for select to authenticated
++  using ((select auth.uid()) = id);
++
++drop policy if exists "profiles_update_own" on public.profiles;
++create policy "profiles_update_own" on public.profiles
++  for update to authenticated
++  using ((select auth.uid()) = id)
++  with check ((select auth.uid()) = id);
++
++drop policy if exists "categories_select_all" on public.categories;
++create policy "categories_select_all" on public.categories
++  for select to authenticated
++  using (true);
++
++drop policy if exists "movements_select_own" on public.movements;
++create policy "movements_select_own" on public.movements
++  for select to authenticated
++  using ((select auth.uid()) = user_id);
++
++drop policy if exists "movements_insert_own" on public.movements;
++create policy "movements_insert_own" on public.movements
++  for insert to authenticated
++  with check ((select auth.uid()) = user_id);
++
++drop policy if exists "movements_update_own" on public.movements;
++create policy "movements_update_own" on public.movements
++  for update to authenticated
++  using ((select auth.uid()) = user_id)
++  with check ((select auth.uid()) = user_id);
++
++drop policy if exists "movements_delete_own" on public.movements;
++create policy "movements_delete_own" on public.movements
++  for delete to authenticated
++  using ((select auth.uid()) = user_id);
++
++-- Índices
++create index if not exists movements_user_date_idx on public.movements (user_id, date desc);
++create index if not exists movements_user_category_idx on public.movements (user_id, category_id);
++create index if not exists movements_category_idx on public.movements (category_id);
++
++-- Categorías iniciales
++insert into public.categories (name, type) values
++  ('Comida','expense'),('Transporte','expense'),('Entretenimiento','expense'),
++  ('Servicios','expense'),('Salud','expense'),('Educación','expense'),
++  ('Ropa','expense'),('Despensa','expense'),('Otros gastos','expense'),
++  ('Salario','income'),('Ventas','income'),('Otros ingresos','income')
++on conflict (name) do nothing;
++
++-- Si tu usuario de prueba no puede entrar por falta de confirmación de correo:
++-- update auth.users set email_confirmed_at = now() where email_confirmed_at is null;
++
++notify pgrst, 'reload schema';
+diff --git a/src/Data/categories.ts b/src/Data/categories.ts
+new file mode 100644
+index 0000000..fc9f1b6
+--- /dev/null
++++ b/src/Data/categories.ts
+@@ -0,0 +1,8 @@
++const PALETTE = ["#f97316", "#3b82f6", "#eab308", "#22c55e", "#a855f7", "#ef4444", "#06b6d4", "#bf059a"];
++
++// Color estable por nombre de categoría (para chips y gráfica).
++export const colorForCategory = (name: string): string => {
++  let h = 0;
++  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 997;
++  return PALETTE[h % PALETTE.length];
++};
+diff --git a/src/Data/types/transactions.ts b/src/Data/types/transactions.ts
+index 135c8fa..3c1ac81 100644
+--- a/src/Data/types/transactions.ts
++++ b/src/Data/types/transactions.ts
+@@ -1,14 +1,23 @@
+-export type Transaction = {
++export type MovementType = "income" | "expense";
++
++export type Category = {
++  id: string;
++  name: string;
++};
++
++export type Movement = {
+   id: number;
++  type: MovementType;
+   amount: number;
+-  category: string;
++  category_id: string;
+   description?: string | null;
+-  onDelete:()=>void;
+-  onEdit:()=>void;
++  date: string;
++  categories?: { name: string } | null;
  };
  
--export default Header;
-\ No newline at end of file
-+export default Header;
-diff -ruN '--exclude=node_modules' a/src/components/screens/LoginScreen.js b/src/components/screens/LoginScreen.js
---- a/src/components/screens/LoginScreen.js	2026-11-16 20:20:31.440214995 -0600
-+++ b/src/components/screens/LoginScreen.js	2026-11-16 20:20:31.488136508 -0600
-@@ -1,7 +1,8 @@
- import { useRouter } from "expo-router";
- import { useState } from "react";
--import { Text, TouchableOpacity, View } from "react-native";
-+import { Alert, Text, TouchableOpacity, View } from "react-native";
- 
-+import { useAuth } from "../../context/AuthProvider";
- import { socialImages } from "../../Data/socialImages";
- import PrimaryButton from "../Buttons/PrimaryButton";
- import SocialButton from "../Buttons/SocialButton";
-@@ -9,14 +10,28 @@
- 
- const LoginScreen = () => {
-   const router = useRouter();
-+  const { signIn } = useAuth();
-   const [email, setEmail] = useState("");
-   const [password, setPassword] = useState("");
-   const { google } = socialImages;
- 
-+  const handleSignIn = async () => {
-+    if (!email || !password) {
-+      Alert.alert("Datos incompletos", "Introduce tu correo y contraseña");
-+      return;
-+    }
-+    try {
-+      await signIn(email.trim(), password);
-+      router.replace("/(tabs)/home");
-+    } catch (error) {
-+      Alert.alert("No se pudo iniciar sesión", error.message);
-+    }
-+  };
-+
-   return (
-     <View className="px-4 gap-4 mt-8">
-       <Text className="text-[16px] font-bold text-center text-gray-700">
--        Sign In to your account
-+        Inicia sesión en tu cuenta
-       </Text>
-       <InputField
-         icon="mail"
-@@ -31,27 +46,24 @@
-         onChangeText={setPassword}
-         secureTextEntry={true}
-       />
--      <TouchableOpacity onPress={() => console.log("Forgot Password Pressed")}>
-+      <TouchableOpacity onPress={() => console.log("Olvidé mi contraseña")}>
-         <Text className="text-base font-semibold text-primary text-right">
--          Forgot Password?
-+          ¿Olvidaste tu contraseña?
-         </Text>
-       </TouchableOpacity>
--      <PrimaryButton
--        title="Login"
--        onPress={() => router.replace("/(tabs)/home")}
--      />
-+      <PrimaryButton title="Iniciar sesión" onPress={handleSignIn} />
-       <View className="flex-row justify-center items-center">
-         <View className="flex-1 h-[1px] bg-gray-300" />
--        <Text className="text-base text-gray-700 mx-4">OR</Text>
-+        <Text className="text-base text-gray-700 mx-4">O</Text>
-         <View className="flex-1 h-[1px] bg-gray-300" />
-       </View>
-       <SocialButton
-         title="Google"
-         image={google}
--        onPress={() => console.log("Google Button Pressed")}
-+        onPress={() => console.log("Botón de Google presionado")}
-       />
-     </View>
-   );
- };
- 
--export default LoginScreen;
-\ No newline at end of file
-+export default LoginScreen;
-diff -ruN '--exclude=node_modules' a/src/components/screens/SignupScreen.js b/src/components/screens/SignupScreen.js
---- a/src/components/screens/SignupScreen.js	2026-11-16 20:20:31.440230145 -0600
-+++ b/src/components/screens/SignupScreen.js	2026-11-16 20:20:31.492640810 -0600
-@@ -1,19 +1,38 @@
- import { useState } from "react";
--import { Text, View } from "react-native";
-+import { Alert, Text, View } from "react-native";
- 
-+import { useAuth } from "../../context/AuthProvider";
- import PrimaryButton from "../Buttons/PrimaryButton";
- import InputField from "../Forms/InputField";
- 
- const SignupScreen = () => {
-+  const { signUp } = useAuth();
-   const [email, setEmail] = useState("");
-   const [password, setPassword] = useState("");
-   const [confirmPassword, setConfirmPassword] = useState("");
-   const [name, setName] = useState("");
- 
-+  const handleSignUp = async () => {
-+    if (!name || !email || !password || !confirmPassword) {
-+      Alert.alert("Datos incompletos", "Completa todos los campos");
-+      return;
-+    }
-+    if (password !== confirmPassword) {
-+      Alert.alert("Error", "Las contraseñas no coinciden");
-+      return;
-+    }
-+    try {
-+      await signUp(email.trim(), password, name.trim());
-+      Alert.alert("Cuenta creada", "Tu cuenta se creó correctamente");
-+    } catch (error) {
-+      Alert.alert("No se pudo registrar", error.message);
-+    }
-+  };
-+
-   return (
-     <View className="px-4 gap-4 mt-8">
-       <Text className="text-[16px] font-bold text-center text-gray-700">
--        Create an account
-+        Crea una cuenta
-       </Text>
-       <InputField
-         icon="person"
-@@ -41,13 +60,9 @@
-         onChangeText={setConfirmPassword}
-         secureTextEntry={true}
-       />
--
--      <PrimaryButton
--        title="Sign Up"
--        onPress={() => console.log("Se ha pulsado el botón de registro")}
--      />
-+      <PrimaryButton title="Registrarse" onPress={handleSignUp} />
-     </View>
-   );
- };
- 
--export default SignupScreen;
-\ No newline at end of file
-+export default SignupScreen;
-diff -ruN '--exclude=node_modules' a/src/context/AuthProvider.tsx b/src/context/AuthProvider.tsx
---- a/src/context/AuthProvider.tsx	2026-11-16 20:20:31.440247477 -0600
-+++ b/src/context/AuthProvider.tsx	2026-11-16 20:20:31.482518901 -0600
-@@ -6,7 +6,7 @@
-     session: Session | null;
-     loading: boolean;
- 
--    signUp:(email:string,password:string)=>Promise<void>;
-+    signUp:(email:string,password:string,fullName?:string)=>Promise<void>;
-     signIn:(email:string,password:string)=>Promise<void>;
-     signOut:()=>Promise<void>;
- }
-@@ -41,8 +41,12 @@
-         }
-     },[])
- 
--    const signUp = async (email: string, password: string) => {
--        const { error } = await supabase.auth.signUp({ email, password })
-+    const signUp = async (email: string, password: string, fullName?: string) => {
-+        const { error } = await supabase.auth.signUp({
-+            email,
-+            password,
-+            options: { data: { full_name: fullName } },
-+        })
-         if (error) {
-             throw error;
-         }
-diff -ruN '--exclude=node_modules' a/src/hooks/useTranasaction.ts b/src/hooks/useTranasaction.ts
---- a/src/hooks/useTranasaction.ts	2026-11-16 20:20:31.440278185 -0600
-+++ b/src/hooks/useTranasaction.ts	2026-11-16 20:20:31.443613358 -0600
-@@ -2,6 +2,8 @@
- import { supabase } from "@/lib/supabase";
- import { useCallback, useState } from "react";
- 
-+// Los errores de Supabase se PROPAGAN (throw) para que quien llama
-+// (formulario / pantalla) sepa si la operación realmente se guardó.
- export const useTransaction = () => {
-   const [expenses, setExpenses] = useState<Transaction[]>([]);
-   const [isFetching, setIsFetching] = useState<boolean>(false);
-@@ -9,70 +11,50 @@
- 
-   const fetchExpense = useCallback(async () => {
-     setIsFetching(true);
--
--    const { data, error } = await supabase
--      .from("expenses")
--      .select("*")
--      .order("id", { ascending: true });
--
--    if (error) {
--      console.log("No se pudo obtener el gasto: ", error.message);
-+    try {
-+      const { data, error } = await supabase
-+        .from("expenses")
-+        .select("*")
-+        .order("id", { ascending: true });
-+      if (error) throw error;
-+      setExpenses(data || []);
-+    } catch (error: any) {
-+      console.log("No se pudieron obtener los gastos: ", error.message);
-+      throw error;
-+    } finally {
-       setIsFetching(false);
--      return;
-     }
--
--    setExpenses(data || []);
--    console.log("Gastos recuperados: ", data);
--    setIsFetching(false);
-   }, []);
- 
-   const addExpense = async ({ amount, category, description }: TransactionInput) => {
-     if (loading) return;
-     setLoading(true);
--
--    const { data, error } = await supabase
--      .from("expenses")
--      .insert([
--        {
--          amount: Number(amount),
--          category,
--          description,
--        },
--      ]);
--
--    if (error) {
-+    try {
-+      const { error } = await supabase
-+        .from("expenses")
-+        .insert([{ amount: Number(amount), category, description }]);
-+      if (error) throw error;
-+      await fetchExpense();
-+    } catch (error: any) {
-       console.log("No se pudo añadir el gasto: ", error.message);
-+      throw error;
-+    } finally {
-       setLoading(false);
--      return;
-     }
--
--    await fetchExpense();
--    console.log("El gasto se ha añadido correctamente! ", data);
--    setLoading(false);
-   };
- 
-   const deleteExpense = async (id: number) => {
--    const { error } = await supabase
--      .from("expenses")
--      .delete()
--      .eq("id", id);
--
-+    const { error } = await supabase.from("expenses").delete().eq("id", id);
-     if (error) {
-       console.log("No se pudo eliminar el gasto: ", error.message);
--      return;
-+      throw error;
-     }
--
-     setExpenses((current) => current.filter((expense) => expense.id !== id));
--    console.log("El gasto se ha eliminado correctamente!");
-   };
- 
-   const updateExpense = async (
-     id: number,
--    updateData: {
--      amount: number;
--      category: string;
--      description: string;
--    }
-+    updateData: { amount: number; category: string; description: string }
-   ) => {
-     const { data, error } = await supabase
-       .from("expenses")
-@@ -80,17 +62,14 @@
-       .eq("id", id)
-       .select()
-       .single();
--
-     if (error) {
-       console.log("No se pudo actualizar el gasto: ", error.message);
--      return;
-+      throw error;
-     }
--
-     setExpenses((current) =>
-       current.map((expense) => (expense.id === id ? data : expense))
-     );
--    console.log("El gasto se ha actualizado correctamente!");
-   };
- 
-   return { expenses, fetchExpense, isFetching, loading, addExpense, deleteExpense, updateExpense };
+-export type TransactionInput = {
++export type MovementInput = {
++  type: MovementType;
+   amount: number;
+-  category: string;
++  category_id: string;
+   description?: string | null;
 -};
 \ No newline at end of file
 +};
+diff --git a/src/app/(tabs)/_layout.tsx b/src/app/(tabs)/_layout.tsx
+index 1478e8e..30c6874 100644
+--- a/src/app/(tabs)/_layout.tsx
++++ b/src/app/(tabs)/_layout.tsx
+@@ -14,9 +14,7 @@ export default function TabsLayout() {
+   return (
+     <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: "#a3109c" }}>
+       <Tabs.Screen name="home" options={{ title: "Inicio", tabBarIcon: icon("home") }} />
+-      <Tabs.Screen name="transactions" options={{ title: "Movimientos", tabBarIcon: icon("swap-horizontal") }} />
+-      <Tabs.Screen name="dataAnalytics" options={{ title: "Estadísticas", tabBarIcon: icon("bar-chart") }} />
+-      <Tabs.Screen name="profile" options={{ title: "Perfil", tabBarIcon: icon("person") }} />
++      <Tabs.Screen name="dataAnalytics" options={{ title: "Análisis", tabBarIcon: icon("bar-chart") }} />
+     </Tabs>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/src/app/(tabs)/dataAnalytics.tsx b/src/app/(tabs)/dataAnalytics.tsx
+index 12c98db..50d7afc 100644
+--- a/src/app/(tabs)/dataAnalytics.tsx
++++ b/src/app/(tabs)/dataAnalytics.tsx
+@@ -1,9 +1,56 @@
+-import { Text, View } from "react-native";
++import CategoryBarChart, { CategoryTotal } from "@/components/Charts/CategoryBarChart";
++import { useTransaction } from "@/hooks/useTranasaction";
++import { useFocusEffect } from "expo-router";
++import { useCallback, useMemo } from "react";
++import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
++import { SafeAreaView } from "react-native-safe-area-context";
++
++export default function DataAnalytics() {
++  const { movements, fetchMovements, isFetching } = useTransaction();
++
++  // Recarga desde Supabase cada vez que se abre la pestaña.
++  useFocusEffect(
++    useCallback(() => {
++      fetchMovements().catch(() => Alert.alert("Error", "No se pudieron cargar los gastos"));
++    }, [fetchMovements])
++  );
++
++  const { data, total } = useMemo(() => {
++    const map = new Map<string, number>();
++    for (const e of movements) {
++      if (e.type !== "expense") continue;
++      const key = e.categories?.name ?? "Sin categoría";
++      map.set(key, (map.get(key) ?? 0) + Number(e.amount));
++    }
++    const sum = [...map.values()].reduce((s, v) => s + v, 0);
++    const list: CategoryTotal[] = [...map.entries()]
++      .map(([category, total]) => ({ category, total, pct: sum ? (total / sum) * 100 : 0 }))
++      .sort((a, b) => b.total - a.total);
++    return { data: list, total: sum };
++  }, [movements]);
+ 
+-export default function Transactions() {
+   return (
+-    <View className="flex-1 items-center justify-center">
+-      <Text>dataAnalytics</Text>
+-    </View>
++    <SafeAreaView style={{ flex: 1 }}>
++      <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
++        <Text className="text-xl font-bold">Gastos por categoría</Text>
++        {isFetching && movements.length === 0 ? (
++          <ActivityIndicator size="large" color="#bf059a" style={{ marginTop: 40 }} />
++        ) : data.length === 0 ? (
++          <Text className="text-center mt-8">Aún no hay gastos para graficar</Text>
++        ) : (
++          <>
++            <View className="bg-white border border-gray-300 rounded-xl p-4">
++              <Text className="text-gray-500">Total gastado</Text>
++              <Text className="text-2xl font-bold">
++                ${total.toLocaleString("es-MX", { maximumFractionDigits: 2 })}
++              </Text>
++            </View>
++            <View className="bg-white border border-gray-300 rounded-xl p-4">
++              <CategoryBarChart data={data} />
++            </View>
++          </>
++        )}
++      </ScrollView>
++    </SafeAreaView>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/src/app/(tabs)/home.tsx b/src/app/(tabs)/home.tsx
+index a4b3e56..a51d0f1 100644
+--- a/src/app/(tabs)/home.tsx
++++ b/src/app/(tabs)/home.tsx
+@@ -1,23 +1,23 @@
+ import TransactionCard from "@/components/Cards/TransactionCard";
+ import TransactionForm from "@/components/Forms/TransactionForm";
+ import Header from "@/components/HomeScreen/Header";
+-import { Transaction } from "@/Data/types/transactions";
++import { Movement } from "@/Data/types/transactions";
+ import { useTransaction } from "@/hooks/useTranasaction";
+ import { useEffect, useState } from "react";
+-import { ActivityIndicator, Alert, Text, View } from "react-native";
++import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+ import { SafeAreaView } from "react-native-safe-area-context";
+ 
+ const Home = () => {
+-  const { expenses, fetchExpense, isFetching, deleteExpense } = useTransaction();
+-  const [editingItem, setEditingItem] = useState<Transaction | null>(null);
++  const { movements, fetchMovements, isFetching, deleteMovement } = useTransaction();
++  const [editingItem, setEditingItem] = useState<Movement | null>(null);
+ 
+   useEffect(() => {
+-    fetchExpense().catch(() => Alert.alert("Error", "No se pudieron cargar los gastos"));
+-  }, [fetchExpense]);
++    fetchMovements().catch(() => Alert.alert("Error", "No se pudieron cargar los movimientos"));
++  }, [fetchMovements]);
+ 
+   const handleDelete = async (id: number) => {
+     try {
+-      await deleteExpense(id);
++      await deleteMovement(id);
+     } catch (e: any) {
+       Alert.alert("No se pudo eliminar", e?.message ?? "Error desconocido");
+     }
+@@ -26,33 +26,32 @@ const Home = () => {
+   return (
+     <SafeAreaView style={{ flex: 1 }}>
+       <Header />
+-      <View className="px-4 mt-4 gap-2">
+-        <TransactionForm
+-          onSuccess={fetchExpense}
+-          editingItem={editingItem}
+-          clearEditing={() => setEditingItem(null)}
+-        />
+-        <Text className="text-xl font-semibold">Mis gastos</Text>
+-        {isFetching ? (
+-          <ActivityIndicator size="large" color="red" style={{ marginTop: 40 }} />
+-        ) : expenses.length > 0 ? (
+-          expenses.map((item) => (
+-            <TransactionCard
+-              key={item.id}
+-              id={item.id}
+-              category={item.category}
+-              amount={item.amount}
+-              description={item.description}
+-              onDelete={() => handleDelete(item.id)}
+-              onEdit={() => setEditingItem(item)}
+-            />
+-          ))
+-        ) : (
+-          <Text className="text-center mt-4">No hay gastos registrados</Text>
+-        )}
+-      </View>
++      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
++        <View className="px-4 mt-4 gap-2">
++          <TransactionForm
++            onSuccess={fetchMovements}
++            editingItem={editingItem}
++            clearEditing={() => setEditingItem(null)}
++          />
++          <Text className="text-xl font-semibold">Mis movimientos</Text>
++          {isFetching ? (
++            <ActivityIndicator size="large" color="red" style={{ marginTop: 40 }} />
++          ) : movements.length > 0 ? (
++            movements.map((item) => (
++              <TransactionCard
++                key={item.id}
++                movement={item}
++                onDelete={() => handleDelete(item.id)}
++                onEdit={() => setEditingItem(item)}
++              />
++            ))
++          ) : (
++            <Text className="text-center mt-4">No hay movimientos registrados</Text>
++          )}
++        </View>
++      </ScrollView>
+     </SafeAreaView>
+   );
+ };
+ 
+-export default Home;
+\ No newline at end of file
++export default Home;
+diff --git a/src/app/(tabs)/profile.tsx b/src/app/(tabs)/profile.tsx
+deleted file mode 100644
+index 6110c69..0000000
+--- a/src/app/(tabs)/profile.tsx
++++ /dev/null
+@@ -1,9 +0,0 @@
+-import { Text, View } from "react-native";
+-
+-export default function Transactions() {
+-  return (
+-    <View className="flex-1 items-center justify-center">
+-      <Text>profile</Text>
+-    </View>
+-  );
+-}
+\ No newline at end of file
+diff --git a/src/app/(tabs)/transactions.tsx b/src/app/(tabs)/transactions.tsx
+deleted file mode 100644
+index bd5135e..0000000
+--- a/src/app/(tabs)/transactions.tsx
++++ /dev/null
+@@ -1,9 +0,0 @@
+-import { Text, View } from "react-native";
+-
+-export default function Transactions() {
+-  return (
+-    <View className="flex-1 items-center justify-center">
+-      <Text>Transactions</Text>
+-    </View>
+-  );
+-}
+\ No newline at end of file
+diff --git a/src/components/Buttons/LogoutButton.tsx b/src/components/Buttons/LogoutButton.tsx
+new file mode 100644
+index 0000000..8e39dfe
+--- /dev/null
++++ b/src/components/Buttons/LogoutButton.tsx
+@@ -0,0 +1,33 @@
++import { useAuth } from "@/context/AuthProvider";
++import { Ionicons } from "@expo/vector-icons";
++import { Alert, TouchableOpacity } from "react-native";
++
++// Al cerrar sesión, RootNavigation (app/_layout.tsx) detecta session = null
++// y redirige solo a la pantalla de login.
++const LogoutButton = () => {
++  const { signOut } = useAuth();
++
++  const confirm = () =>
++    Alert.alert("Cerrar sesión", "¿Seguro que quieres salir?", [
++      { text: "Cancelar", style: "cancel" },
++      {
++        text: "Salir",
++        style: "destructive",
++        onPress: async () => {
++          try {
++            await signOut();
++          } catch (e: any) {
++            Alert.alert("No se pudo cerrar sesión", e?.message ?? "Error desconocido");
++          }
++        },
++      },
++    ]);
++
++  return (
++    <TouchableOpacity onPress={confirm}>
++      <Ionicons name="log-out-outline" size={24} color="#ef4444" />
++    </TouchableOpacity>
++  );
++};
++
++export default LogoutButton;
+diff --git a/src/components/Cards/TransactionCard.tsx b/src/components/Cards/TransactionCard.tsx
+index 5f26ba8..3fc88ff 100644
+--- a/src/components/Cards/TransactionCard.tsx
++++ b/src/components/Cards/TransactionCard.tsx
+@@ -1,21 +1,29 @@
+-import { Transaction } from "@/Data/types/transactions";
++import { Movement } from "@/Data/types/transactions";
+ import { Ionicons } from "@expo/vector-icons";
+ import { Text, TouchableOpacity, View } from "react-native";
+ 
+-type TransactionCardProps = Transaction & {
++type TransactionCardProps = {
++  movement: Movement;
+   onDelete: () => void;
+   onEdit: () => void;
+ };
+ 
+-const TransactionCard = ({ amount, category, description, onDelete, onEdit }: TransactionCardProps) => {
++const TransactionCard = ({ movement, onDelete, onEdit }: TransactionCardProps) => {
++  const isIncome = movement.type === "income";
+   return (
+-    <View className="w-full border border-gray-300 bg-white p-4 rounded-xl border-l-4 border-l-red-500">
++    <View
++      className={`w-full border border-gray-300 bg-white p-4 rounded-xl border-l-4 ${
++        isIncome ? "border-l-green-500" : "border-l-red-500"
++      }`}
++    >
+       <View className="flex-row justify-between">
+-        <Text className="text-xl font-semibold">{category}</Text>
+-        <Text className="text-red-500 text-xl">-${amount}</Text>
++        <Text className="text-xl font-semibold">{movement.categories?.name ?? "Sin categoría"}</Text>
++        <Text className={`text-xl ${isIncome ? "text-green-500" : "text-red-500"}`}>
++          {isIncome ? "+" : "-"}${movement.amount}
++        </Text>
+       </View>
+ 
+-      <Text>{description}</Text>
++      <Text>{movement.description}</Text>
+ 
+       <View className="flex-row justify-end">
+         <TouchableOpacity onPress={onEdit}>
+@@ -29,4 +37,4 @@ const TransactionCard = ({ amount, category, description, onDelete, onEdit }: Tr
+   );
+ };
+ 
+-export default TransactionCard;
+\ No newline at end of file
++export default TransactionCard;
+diff --git a/src/components/Charts/CategoryBarChart.tsx b/src/components/Charts/CategoryBarChart.tsx
+new file mode 100644
+index 0000000..ac8c769
+--- /dev/null
++++ b/src/components/Charts/CategoryBarChart.tsx
+@@ -0,0 +1,41 @@
++import { colorForCategory } from "@/Data/categories";
++import { ScrollView, Text, View } from "react-native";
++
++export type CategoryTotal = { category: string; total: number; pct: number };
++
++const CHART_HEIGHT = 180;
++const COL_WIDTH = 64;
++const fmt = (n: number) => `$${n.toLocaleString("es-MX", { maximumFractionDigits: 2 })}`;
++
++// Gráfica de columnas: una columna por categoría, altura proporcional al gasto.
++const CategoryBarChart = ({ data }: { data: CategoryTotal[] }) => {
++  const max = Math.max(...data.map((d) => d.total), 1);
++  return (
++    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
++      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 12, paddingTop: 8 }}>
++        {data.map((d) => (
++          <View key={d.category} style={{ width: COL_WIDTH, alignItems: "center" }}>
++            <Text style={{ fontSize: 11, fontWeight: "600", marginBottom: 4 }}>{fmt(d.total)}</Text>
++            <Text style={{ fontSize: 11, color: "#6b7280", marginBottom: 4 }}>{d.pct.toFixed(0)}%</Text>
++            <View style={{ height: CHART_HEIGHT, justifyContent: "flex-end" }}>
++              <View
++                style={{
++                  width: 36,
++                  height: Math.max((d.total / max) * CHART_HEIGHT, 4),
++                  backgroundColor: colorForCategory(d.category),
++                  borderTopLeftRadius: 8,
++                  borderTopRightRadius: 8,
++                }}
++              />
++            </View>
++            <Text numberOfLines={1} style={{ fontSize: 12, marginTop: 6, color: "#4b5563" }}>
++              {d.category}
++            </Text>
++          </View>
++        ))}
++      </View>
++    </ScrollView>
++  );
++};
++
++export default CategoryBarChart;
+diff --git a/src/components/Forms/CategoryChips.tsx b/src/components/Forms/CategoryChips.tsx
+new file mode 100644
+index 0000000..822bb78
+--- /dev/null
++++ b/src/components/Forms/CategoryChips.tsx
+@@ -0,0 +1,36 @@
++import { colorForCategory } from "@/Data/categories";
++import { Category } from "@/Data/types/transactions";
++import { ScrollView, Text, TouchableOpacity } from "react-native";
++
++type Props = {
++  categories: Category[];
++  selectedId: string | null;
++  onSelect: (id: string) => void;
++};
++
++const CategoryChips = ({ categories, selectedId, onSelect }: Props) => (
++  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
++    {categories.map((c) => {
++      const active = selectedId === c.id;
++      const color = colorForCategory(c.name);
++      return (
++        <TouchableOpacity
++          key={c.id}
++          onPress={() => onSelect(c.id)}
++          style={{
++            paddingHorizontal: 14,
++            paddingVertical: 8,
++            borderRadius: 999,
++            borderWidth: 1,
++            borderColor: active ? color : "#d1d5db",
++            backgroundColor: active ? color : "#fff",
++          }}
++        >
++          <Text style={{ color: active ? "#fff" : "#374151", fontWeight: "600" }}>{c.name}</Text>
++        </TouchableOpacity>
++      );
++    })}
++  </ScrollView>
++);
++
++export default CategoryChips;
+diff --git a/src/components/Forms/TransactionForm.tsx b/src/components/Forms/TransactionForm.tsx
+index 9818846..d064799 100644
+--- a/src/components/Forms/TransactionForm.tsx
++++ b/src/components/Forms/TransactionForm.tsx
+@@ -1,88 +1,118 @@
+-import { Transaction } from "@/Data/types/transactions";
++import CategoryChips from "@/components/Forms/CategoryChips";
++import { Movement, MovementType } from "@/Data/types/transactions";
++import { useCategories } from "@/hooks/useCategories";
+ import { useTransaction } from "@/hooks/useTranasaction";
+ import { useEffect, useState } from "react";
+-import { Button, Text, TextInput, View } from "react-native";
++import { ActivityIndicator, Button, Text, TextInput, TouchableOpacity, View } from "react-native";
+ 
+ type TransactionFormProps = {
+   onSuccess: () => void | Promise<void>;
+-  editingItem: Transaction | null;
++  editingItem: Movement | null;
+   clearEditing: () => void;
+ };
+ 
++const TYPES: { value: MovementType; label: string }[] = [
++  { value: "expense", label: "Gasto" },
++  { value: "income", label: "Ingreso" },
++];
++
+ const TransactionForm = ({ onSuccess, editingItem, clearEditing }: TransactionFormProps) => {
+-  const { addExpense, loading, updateExpense } = useTransaction();
+-  const [category, setCategory] = useState("");
++  const { addMovement, loading, updateMovement } = useTransaction();
++  const [type, setType] = useState<MovementType>("expense");
++  const [categoryId, setCategoryId] = useState<string | null>(null);
+   const [amount, setAmount] = useState("");
+   const [description, setDescription] = useState("");
+   const [error, setError] = useState("");
++  const { categories, loading: loadingCats } = useCategories(type);
+ 
+   useEffect(() => {
+     if (editingItem) {
++      setType(editingItem.type);
+       setAmount(editingItem.amount.toString());
+-      setCategory(editingItem.category);
++      setCategoryId(editingItem.category_id);
+       setDescription(editingItem.description || "");
+     }
+   }, [editingItem]);
+ 
+-  const handleAddExpense = async () => {
+-    if (!category || !amount) {
+-      setError("Por favor, introduce los datos");
++  const changeType = (value: MovementType) => {
++    if (value === type) return;
++    setType(value);
++    setCategoryId(null);
++  };
++
++  const reset = () => {
++    setAmount("");
++    setCategoryId(null);
++    setDescription("");
++  };
++
++  const handleSave = async () => {
++    if (!categoryId || !amount) {
++      setError("Elige una categoría e introduce el monto");
+       return;
+     }
+     if (isNaN(Number(amount)) || Number(amount) <= 0) {
+       setError("Por favor, introduce una cantidad válida");
+       return;
+     }
++    const payload = {
++      type,
++      amount: Number(amount),
++      category_id: categoryId,
++      description,
++    };
+     try {
+       if (editingItem) {
+-        await updateExpense(editingItem.id, {
+-          amount: Number(amount),
+-          category,
+-          description,
+-        });
++        await updateMovement(editingItem.id, payload);
+         clearEditing();
+       } else {
+-        await addExpense({
+-          amount: Number(amount),
+-          category,
+-          description,
+-        });
++        await addMovement(payload);
+       }
+     } catch (e: any) {
+       // Falló el guardado: se conservan los datos escritos.
+-      setError(`No se pudo guardar el gasto: ${e?.message ?? "error desconocido"}`);
++      setError(`No se pudo guardar: ${e?.message ?? "error desconocido"}`);
+       return;
+     }
+-
+     setError("");
+-    setAmount("");
+-    setCategory("");
+-    setDescription("");
++    reset();
+     onSuccess();
+   };
+ 
+   const handleCancel = () => {
+-    setAmount("");
+-    setCategory("");
+-    setDescription("");
++    reset();
+     clearEditing();
+   };
+ 
+   return (
+     <View className="gap-2">
+       {error ? <Text className="text-red-500">{error}</Text> : null}
++      <View className="flex-row gap-2">
++        {TYPES.map((t) => (
++          <TouchableOpacity
++            key={t.value}
++            onPress={() => changeType(t.value)}
++            className={`flex-1 py-2 rounded-xl border items-center ${
++              type === t.value ? "bg-primary border-primary" : "border-gray-300"
++            }`}
++          >
++            <Text className={type === t.value ? "text-white font-semibold" : "text-gray-700"}>
++              {t.label}
++            </Text>
++          </TouchableOpacity>
++        ))}
++      </View>
+       <TextInput
+         className="border border-gray-300 rounded-xl px-4"
+         placeholder="Ingrese el monto $"
++        keyboardType="decimal-pad"
+         value={amount}
+         onChangeText={setAmount}
+       />
+-      <TextInput
+-        className="border border-gray-300 rounded-xl px-4"
+-        placeholder="Introduce la categoría"
+-        value={category}
+-        onChangeText={setCategory}
+-      />
++      {loadingCats ? (
++        <ActivityIndicator color="#bf059a" />
++      ) : (
++        <CategoryChips categories={categories} selectedId={categoryId} onSelect={setCategoryId} />
++      )}
+       <TextInput
+         className="border border-gray-300 rounded-xl px-4"
+         placeholder="Introduce la descripción"
+@@ -99,14 +129,14 @@ const TransactionForm = ({ onSuccess, editingItem, clearEditing }: TransactionFo
+           <Button
+             title={
+               loading
+-                ? editingItem
+-                  ? "Actualizando..."
+-                  : "Agregando..."
++                ? "Guardando..."
+                 : editingItem
+                 ? "Actualizar"
++                : type === "income"
++                ? "Agregar ingreso"
+                 : "Agregar gasto"
+             }
+-            onPress={handleAddExpense}
++            onPress={handleSave}
+           />
+         </View>
+       </View>
+@@ -114,4 +144,4 @@ const TransactionForm = ({ onSuccess, editingItem, clearEditing }: TransactionFo
+   );
+ };
+ 
+-export default TransactionForm;
+\ No newline at end of file
++export default TransactionForm;
+diff --git a/src/components/HomeScreen/Header.tsx b/src/components/HomeScreen/Header.tsx
+index 3bfabcd..8eecdef 100644
+--- a/src/components/HomeScreen/Header.tsx
++++ b/src/components/HomeScreen/Header.tsx
+@@ -1,3 +1,4 @@
++import LogoutButton from "@/components/Buttons/LogoutButton";
+ import { useAuth } from "@/context/AuthProvider";
+ import { Text, View } from "react-native";
+ 
+@@ -7,9 +8,12 @@ const Header = () => {
+     user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
+ 
+   return (
+-    <View className="px-4 py-3">
+-      <Text className="text-gray-500">Bienvenido de nuevo</Text>
+-      <Text className="text-lg font-bold">Hola, {name}</Text>
++    <View className="px-4 py-3 flex-row items-center justify-between">
++      <View>
++        <Text className="text-gray-500">Bienvenido de nuevo</Text>
++        <Text className="text-lg font-bold">Hola, {name}</Text>
++      </View>
++      <LogoutButton />
+     </View>
+   );
+ };
+diff --git a/src/components/screens/SignupScreen.js b/src/components/screens/SignupScreen.js
+index 12da9c5..3e3dc5b 100644
+--- a/src/components/screens/SignupScreen.js
++++ b/src/components/screens/SignupScreen.js
+@@ -22,8 +22,13 @@ const SignupScreen = () => {
+       return;
+     }
+     try {
+-      await signUp(email.trim(), password, name.trim());
+-      Alert.alert("Cuenta creada", "Tu cuenta se creó correctamente");
++      const { needsConfirmation } = await signUp(email.trim(), password, name.trim());
++      Alert.alert(
++        "Cuenta creada",
++        needsConfirmation
++          ? "Te enviamos un correo. Confírmalo y luego inicia sesión."
++          : "Tu cuenta se creó correctamente"
++      );
+     } catch (error) {
+       Alert.alert("No se pudo registrar", error.message);
+     }
+diff --git a/src/context/AuthProvider.tsx b/src/context/AuthProvider.tsx
+index 648a239..aca0745 100644
+--- a/src/context/AuthProvider.tsx
++++ b/src/context/AuthProvider.tsx
+@@ -6,7 +6,7 @@ interface AuthContextType {
+     session: Session | null;
+     loading: boolean;
+ 
+-    signUp:(email:string,password:string,fullName?:string)=>Promise<void>;
++    signUp:(email:string,password:string,fullName?:string)=>Promise<{ needsConfirmation: boolean }>;
+     signIn:(email:string,password:string)=>Promise<void>;
+     signOut:()=>Promise<void>;
+ }
+@@ -42,7 +42,7 @@ export const AuthProvider = ({children}:{children:React.ReactNode;}) => {
+     },[])
+ 
+     const signUp = async (email: string, password: string, fullName?: string) => {
+-        const { error } = await supabase.auth.signUp({
++        const { data, error } = await supabase.auth.signUp({
+             email,
+             password,
+             options: { data: { full_name: fullName } },
+@@ -50,10 +50,18 @@ export const AuthProvider = ({children}:{children:React.ReactNode;}) => {
+         if (error) {
+             throw error;
+         }
++        // Sin sesión = Supabase exige confirmar el correo antes de iniciar sesión.
++        return { needsConfirmation: !data.session }
+     }
+     const signIn = async (email: string, password: string) => {
+         const { error } = await supabase.auth.signInWithPassword({ email, password })
+         if (error) {
++            if (error.code === "email_not_confirmed") {
++                throw new Error("Debes confirmar tu correo. Revisa tu bandeja (y spam) y abre el enlace de confirmación.")
++            }
++            if (error.code === "invalid_credentials") {
++                throw new Error("Correo o contraseña incorrectos.")
++            }
+             throw error;
+         }
+     }
+diff --git a/src/hooks/useCategories.ts b/src/hooks/useCategories.ts
+new file mode 100644
+index 0000000..1df3d79
+--- /dev/null
++++ b/src/hooks/useCategories.ts
+@@ -0,0 +1,30 @@
++import { Category, MovementType } from "@/Data/types/transactions";
++import { supabase } from "@/lib/supabase";
++import { useEffect, useState } from "react";
++
++// Lee las categorías (tabla `categories`) del tipo indicado.
++export const useCategories = (type: MovementType) => {
++  const [categories, setCategories] = useState<Category[]>([]);
++  const [loading, setLoading] = useState(true);
++
++  useEffect(() => {
++    let active = true;
++    setLoading(true);
++    supabase
++      .from("categories")
++      .select("id, name")
++      .eq("type", type)
++      .order("name")
++      .then(({ data, error }) => {
++        if (!active) return;
++        if (error) console.log("No se pudieron obtener las categorías: ", error.message);
++        setCategories(data ?? []);
++        setLoading(false);
++      });
++    return () => {
++      active = false;
++    };
++  }, [type]);
++
++  return { categories, loading };
++};
+diff --git a/src/hooks/useTranasaction.ts b/src/hooks/useTranasaction.ts
+index 90ad7bf..6eb00d5 100644
+--- a/src/hooks/useTranasaction.ts
++++ b/src/hooks/useTranasaction.ts
+@@ -1,75 +1,64 @@
+-import { Transaction, TransactionInput } from "@/Data/types/transactions";
++import { Movement, MovementInput } from "@/Data/types/transactions";
+ import { supabase } from "@/lib/supabase";
+ import { useCallback, useState } from "react";
+ 
+ // Los errores de Supabase se PROPAGAN (throw) para que quien llama
+ // (formulario / pantalla) sepa si la operación realmente se guardó.
+ export const useTransaction = () => {
+-  const [expenses, setExpenses] = useState<Transaction[]>([]);
++  const [movements, setMovements] = useState<Movement[]>([]);
+   const [isFetching, setIsFetching] = useState<boolean>(false);
+   const [loading, setLoading] = useState<boolean>(false);
+ 
+-  const fetchExpense = useCallback(async () => {
++  const fetchMovements = useCallback(async () => {
+     setIsFetching(true);
+     try {
+       const { data, error } = await supabase
+-        .from("expenses")
+-        .select("*")
+-        .order("id", { ascending: true });
++        .from("movements")
++        .select("*, categories(name)")
++        .order("date", { ascending: false })
++        .order("id", { ascending: false });
+       if (error) throw error;
+-      setExpenses(data || []);
++      setMovements((data as Movement[]) || []);
+     } catch (error: any) {
+-      console.log("No se pudieron obtener los gastos: ", error.message);
++      console.log("No se pudieron obtener los movimientos: ", error.message);
+       throw error;
+     } finally {
+       setIsFetching(false);
+     }
+   }, []);
+ 
+-  const addExpense = async ({ amount, category, description }: TransactionInput) => {
++  const addMovement = async (input: MovementInput) => {
+     if (loading) return;
+     setLoading(true);
+     try {
+-      const { error } = await supabase
+-        .from("expenses")
+-        .insert([{ amount: Number(amount), category, description }]);
++      const { error } = await supabase.from("movements").insert([input]);
+       if (error) throw error;
+-      await fetchExpense();
++      await fetchMovements();
+     } catch (error: any) {
+-      console.log("No se pudo añadir el gasto: ", error.message);
++      console.log("No se pudo añadir el movimiento: ", error.message);
+       throw error;
+     } finally {
+       setLoading(false);
+     }
+   };
+ 
+-  const deleteExpense = async (id: number) => {
+-    const { error } = await supabase.from("expenses").delete().eq("id", id);
++  const deleteMovement = async (id: number) => {
++    const { error } = await supabase.from("movements").delete().eq("id", id);
+     if (error) {
+-      console.log("No se pudo eliminar el gasto: ", error.message);
++      console.log("No se pudo eliminar el movimiento: ", error.message);
+       throw error;
+     }
+-    setExpenses((current) => current.filter((expense) => expense.id !== id));
++    setMovements((current) => current.filter((m) => m.id !== id));
+   };
+ 
+-  const updateExpense = async (
+-    id: number,
+-    updateData: { amount: number; category: string; description: string }
+-  ) => {
+-    const { data, error } = await supabase
+-      .from("expenses")
+-      .update(updateData)
+-      .eq("id", id)
+-      .select()
+-      .single();
++  const updateMovement = async (id: number, updateData: MovementInput) => {
++    const { error } = await supabase.from("movements").update(updateData).eq("id", id);
+     if (error) {
+-      console.log("No se pudo actualizar el gasto: ", error.message);
++      console.log("No se pudo actualizar el movimiento: ", error.message);
+       throw error;
+     }
+-    setExpenses((current) =>
+-      current.map((expense) => (expense.id === id ? data : expense))
+-    );
++    await fetchMovements();
+   };
+ 
+-  return { expenses, fetchExpense, isFetching, loading, addExpense, deleteExpense, updateExpense };
++  return { movements, fetchMovements, isFetching, loading, addMovement, deleteMovement, updateMovement };
+ };

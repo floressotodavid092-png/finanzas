@@ -22,8 +22,13 @@ const SignupScreen = () => {
       return;
     }
     try {
-      await signUp(email.trim(), password, name.trim());
-      Alert.alert("Cuenta creada", "Tu cuenta se creó correctamente");
+      const { needsConfirmation } = await signUp(email.trim(), password, name.trim());
+      Alert.alert(
+        "Cuenta creada",
+        needsConfirmation
+          ? "Te enviamos un correo. Confírmalo y luego inicia sesión."
+          : "Tu cuenta se creó correctamente"
+      );
     } catch (error) {
       Alert.alert("No se pudo registrar", error.message);
     }

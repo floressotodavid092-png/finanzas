@@ -1,88 +1,118 @@
-import { Transaction } from "@/Data/types/transactions";
+import CategoryChips from "@/components/Forms/CategoryChips";
+import { Movement, MovementType } from "@/Data/types/transactions";
+import { useCategories } from "@/hooks/useCategories";
 import { useTransaction } from "@/hooks/useTranasaction";
 import { useEffect, useState } from "react";
-import { Button, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Button, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type TransactionFormProps = {
   onSuccess: () => void | Promise<void>;
-  editingItem: Transaction | null;
+  editingItem: Movement | null;
   clearEditing: () => void;
 };
 
+const TYPES: { value: MovementType; label: string }[] = [
+  { value: "expense", label: "Gasto" },
+  { value: "income", label: "Ingreso" },
+];
+
 const TransactionForm = ({ onSuccess, editingItem, clearEditing }: TransactionFormProps) => {
-  const { addExpense, loading, updateExpense } = useTransaction();
-  const [category, setCategory] = useState("");
+  const { addMovement, loading, updateMovement } = useTransaction();
+  const [type, setType] = useState<MovementType>("expense");
+  const [categoryId, setCategoryId] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
+  const { categories, loading: loadingCats } = useCategories(type);
 
   useEffect(() => {
     if (editingItem) {
+      setType(editingItem.type);
       setAmount(editingItem.amount.toString());
-      setCategory(editingItem.category);
+      setCategoryId(editingItem.category_id);
       setDescription(editingItem.description || "");
     }
   }, [editingItem]);
 
-  const handleAddExpense = async () => {
-    if (!category || !amount) {
-      setError("Por favor, introduce los datos");
+  const changeType = (value: MovementType) => {
+    if (value === type) return;
+    setType(value);
+    setCategoryId(null);
+  };
+
+  const reset = () => {
+    setAmount("");
+    setCategoryId(null);
+    setDescription("");
+  };
+
+  const handleSave = async () => {
+    if (!categoryId || !amount) {
+      setError("Elige una categoría e introduce el monto");
       return;
     }
     if (isNaN(Number(amount)) || Number(amount) <= 0) {
       setError("Por favor, introduce una cantidad válida");
       return;
     }
+    const payload = {
+      type,
+      amount: Number(amount),
+      category_id: categoryId,
+      description,
+    };
     try {
       if (editingItem) {
-        await updateExpense(editingItem.id, {
-          amount: Number(amount),
-          category,
-          description,
-        });
+        await updateMovement(editingItem.id, payload);
         clearEditing();
       } else {
-        await addExpense({
-          amount: Number(amount),
-          category,
-          description,
-        });
+        await addMovement(payload);
       }
     } catch (e: any) {
       // Falló el guardado: se conservan los datos escritos.
-      setError(`No se pudo guardar el gasto: ${e?.message ?? "error desconocido"}`);
+      setError(`No se pudo guardar: ${e?.message ?? "error desconocido"}`);
       return;
     }
-
     setError("");
-    setAmount("");
-    setCategory("");
-    setDescription("");
+    reset();
     onSuccess();
   };
 
   const handleCancel = () => {
-    setAmount("");
-    setCategory("");
-    setDescription("");
+    reset();
     clearEditing();
   };
 
   return (
     <View className="gap-2">
       {error ? <Text className="text-red-500">{error}</Text> : null}
+      <View className="flex-row gap-2">
+        {TYPES.map((t) => (
+          <TouchableOpacity
+            key={t.value}
+            onPress={() => changeType(t.value)}
+            className={`flex-1 py-2 rounded-xl border items-center ${
+              type === t.value ? "bg-primary border-primary" : "border-gray-300"
+            }`}
+          >
+            <Text className={type === t.value ? "text-white font-semibold" : "text-gray-700"}>
+              {t.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
       <TextInput
         className="border border-gray-300 rounded-xl px-4"
         placeholder="Ingrese el monto $"
+        keyboardType="decimal-pad"
         value={amount}
         onChangeText={setAmount}
       />
-      <TextInput
-        className="border border-gray-300 rounded-xl px-4"
-        placeholder="Introduce la categoría"
-        value={category}
-        onChangeText={setCategory}
-      />
+      {loadingCats ? (
+        <ActivityIndicator color="#bf059a" />
+      ) : (
+        <CategoryChips categories={categories} selectedId={categoryId} onSelect={setCategoryId} />
+      )}
       <TextInput
         className="border border-gray-300 rounded-xl px-4"
         placeholder="Introduce la descripción"
@@ -99,14 +129,14 @@ const TransactionForm = ({ onSuccess, editingItem, clearEditing }: TransactionFo
           <Button
             title={
               loading
-                ? editingItem
-                  ? "Actualizando..."
-                  : "Agregando..."
+                ? "Guardando..."
                 : editingItem
                 ? "Actualizar"
+                : type === "income"
+                ? "Agregar ingreso"
                 : "Agregar gasto"
             }
-            onPress={handleAddExpense}
+            onPress={handleSave}
           />
         </View>
       </View>
