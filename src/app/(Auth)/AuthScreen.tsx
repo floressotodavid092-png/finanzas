@@ -51,7 +51,7 @@ const AuthScreen = () => {
                 onPress={() => setActiveTab(isLogin ? "Signup" : "Login")}
               >
                 <Text className="text-primary font-semibold underline">
-                  {isLogin ? "Sign Up" : "Login"}
+                  {isLogin ? "Regístrate" : "Inicia sesión"}
                 </Text>
               </TouchableOpacity>
             </View>

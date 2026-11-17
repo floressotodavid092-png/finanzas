@@ -1,7 +1,8 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 
+import { useAuth } from "../../context/AuthProvider";
 import { socialImages } from "../../Data/socialImages";
 import PrimaryButton from "../Buttons/PrimaryButton";
 import SocialButton from "../Buttons/SocialButton";
@@ -9,14 +10,28 @@ import InputField from "../Forms/InputField";
 
 const LoginScreen = () => {
   const router = useRouter();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { google } = socialImages;
 
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      Alert.alert("Datos incompletos", "Introduce tu correo y contraseña");
+      return;
+    }
+    try {
+      await signIn(email.trim(), password);
+      router.replace("/(tabs)/home");
+    } catch (error) {
+      Alert.alert("No se pudo iniciar sesión", error.message);
+    }
+  };
+
   return (
     <View className="px-4 gap-4 mt-8">
       <Text className="text-[16px] font-bold text-center text-gray-700">
-        Sign In to your account
+        Inicia sesión en tu cuenta
       </Text>
       <InputField
         icon="mail"
@@ -31,24 +46,21 @@ const LoginScreen = () => {
         onChangeText={setPassword}
         secureTextEntry={true}
       />
-      <TouchableOpacity onPress={() => console.log("Forgot Password Pressed")}>
+      <TouchableOpacity onPress={() => console.log("Olvidé mi contraseña")}>
         <Text className="text-base font-semibold text-primary text-right">
-          Forgot Password?
+          ¿Olvidaste tu contraseña?
         </Text>
       </TouchableOpacity>
-      <PrimaryButton
-        title="Login"
-        onPress={() => router.replace("/(tabs)/home")}
-      />
+      <PrimaryButton title="Iniciar sesión" onPress={handleSignIn} />
       <View className="flex-row justify-center items-center">
         <View className="flex-1 h-[1px] bg-gray-300" />
-        <Text className="text-base text-gray-700 mx-4">OR</Text>
+        <Text className="text-base text-gray-700 mx-4">O</Text>
         <View className="flex-1 h-[1px] bg-gray-300" />
       </View>
       <SocialButton
         title="Google"
         image={google}
-        onPress={() => console.log("Google Button Pressed")}
+        onPress={() => console.log("Botón de Google presionado")}
       />
     </View>
   );

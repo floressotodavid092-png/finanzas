@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button, Text, TextInput, View } from "react-native";
 
 type TransactionFormProps = {
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
   editingItem: Transaction | null;
   clearEditing: () => void;
 };
@@ -33,19 +33,25 @@ const TransactionForm = ({ onSuccess, editingItem, clearEditing }: TransactionFo
       setError("Por favor, introduce una cantidad válida");
       return;
     }
-    if (editingItem) {
-      await updateExpense(editingItem.id, {
-        amount: Number(amount),
-        category,
-        description,
-      });
-      clearEditing();
-    } else {
-      await addExpense({
-        amount: Number(amount),
-        category,
-        description,
-      });
+    try {
+      if (editingItem) {
+        await updateExpense(editingItem.id, {
+          amount: Number(amount),
+          category,
+          description,
+        });
+        clearEditing();
+      } else {
+        await addExpense({
+          amount: Number(amount),
+          category,
+          description,
+        });
+      }
+    } catch (e: any) {
+      // Falló el guardado: se conservan los datos escritos.
+      setError(`No se pudo guardar el gasto: ${e?.message ?? "error desconocido"}`);
+      return;
     }
 
     setError("");
@@ -86,7 +92,7 @@ const TransactionForm = ({ onSuccess, editingItem, clearEditing }: TransactionFo
       <View className="flex-row justify-between w-full">
         {editingItem && (
           <View className="flex-1 mr-2">
-            <Button title="Cancel" onPress={handleCancel} color="gray" />
+            <Button title="Cancelar" onPress={handleCancel} color="gray" />
           </View>
         )}
         <View className="flex-1">
@@ -94,11 +100,11 @@ const TransactionForm = ({ onSuccess, editingItem, clearEditing }: TransactionFo
             title={
               loading
                 ? editingItem
-                  ? "Updating..."
-                  : "Adding..."
+                  ? "Actualizando..."
+                  : "Agregando..."
                 : editingItem
-                ? "Update"
-                : "Add Expense"
+                ? "Actualizar"
+                : "Agregar gasto"
             }
             onPress={handleAddExpense}
           />

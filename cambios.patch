@@ -1,0 +1,509 @@
+diff -ruN '--exclude=node_modules' a/src/Data/onboardingData.ts b/src/Data/onboardingData.ts
+--- a/src/Data/onboardingData.ts	2026-11-16 20:20:31.439912959 -0600
++++ b/src/Data/onboardingData.ts	2026-11-16 20:20:31.485093656 -0600
+@@ -1,20 +1,20 @@
+ export const onboardingData = [
+   {
+     backgroundColor: "#72d5f9",
+-    title: "Smart Budgeting",
+-    subtitle: "Track your expenses with ease",
++    title: "Presupuesto inteligente",
++    subtitle: "Controla tus gastos con facilidad",
+     lottie: require("../../assets/animations/bill-payment.json"),
+   },
+   {
+     backgroundColor: "#f791f2",
+-    title: "Monthly Planning",
++    title: "Planeación mensual",
+     subtitle: "Organiza tus finanzas y guarda tu futuro",
+     lottie: require("../../assets/animations/budget-contactless.json"),
+   },
+   {
+     backgroundColor: "#ffc58b",
+-    title: "Insightful Analytics",
+-    subtitle: "Visualize your spending habits with real time data",
++    title: "Estadísticas claras",
++    subtitle: "Visualiza tus hábitos de gasto en tiempo real",
+     lottie: require("../../assets/animations/budget-report.json"),
+   },
+ ];
+\ No newline at end of file
+diff -ruN '--exclude=node_modules' a/src/app/(Auth)/AuthScreen.tsx b/src/app/(Auth)/AuthScreen.tsx
+--- a/src/app/(Auth)/AuthScreen.tsx	2026-11-16 20:20:31.439991517 -0600
++++ b/src/app/(Auth)/AuthScreen.tsx	2026-11-16 20:20:31.486217076 -0600
+@@ -51,7 +51,7 @@
+                 onPress={() => setActiveTab(isLogin ? "Signup" : "Login")}
+               >
+                 <Text className="text-primary font-semibold underline">
+-                  {isLogin ? "Sign Up" : "Login"}
++                  {isLogin ? "Regístrate" : "Inicia sesión"}
+                 </Text>
+               </TouchableOpacity>
+             </View>
+diff -ruN '--exclude=node_modules' a/src/app/(tabs)/_layout.tsx b/src/app/(tabs)/_layout.tsx
+--- a/src/app/(tabs)/_layout.tsx	2026-11-16 20:20:31.440033589 -0600
++++ b/src/app/(tabs)/_layout.tsx	2026-11-16 20:20:31.484102535 -0600
+@@ -13,10 +13,10 @@
+ export default function TabsLayout() {
+   return (
+     <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: "#a3109c" }}>
+-      <Tabs.Screen name="home" options={{ title: "Home", tabBarIcon: icon("home") }} />
+-      <Tabs.Screen name="transactions" options={{ title: "Transactions", tabBarIcon: icon("swap-horizontal") }} />
+-      <Tabs.Screen name="dataAnalytics" options={{ title: "Analytics", tabBarIcon: icon("bar-chart") }} />
+-      <Tabs.Screen name="profile" options={{ title: "Profile", tabBarIcon: icon("person") }} />
++      <Tabs.Screen name="home" options={{ title: "Inicio", tabBarIcon: icon("home") }} />
++      <Tabs.Screen name="transactions" options={{ title: "Movimientos", tabBarIcon: icon("swap-horizontal") }} />
++      <Tabs.Screen name="dataAnalytics" options={{ title: "Estadísticas", tabBarIcon: icon("bar-chart") }} />
++      <Tabs.Screen name="profile" options={{ title: "Perfil", tabBarIcon: icon("person") }} />
+     </Tabs>
+   );
+ }
+\ No newline at end of file
+diff -ruN '--exclude=node_modules' a/src/app/(tabs)/home.tsx b/src/app/(tabs)/home.tsx
+--- a/src/app/(tabs)/home.tsx	2026-11-16 20:20:31.440050484 -0600
++++ b/src/app/(tabs)/home.tsx	2026-11-16 20:20:31.483964781 -0600
+@@ -4,7 +4,7 @@
+ import { Transaction } from "@/Data/types/transactions";
+ import { useTransaction } from "@/hooks/useTranasaction";
+ import { useEffect, useState } from "react";
+-import { ActivityIndicator, Text, View } from "react-native";
++import { ActivityIndicator, Alert, Text, View } from "react-native";
+ import { SafeAreaView } from "react-native-safe-area-context";
+ 
+ const Home = () => {
+@@ -12,9 +12,17 @@
+   const [editingItem, setEditingItem] = useState<Transaction | null>(null);
+ 
+   useEffect(() => {
+-    fetchExpense();
++    fetchExpense().catch(() => Alert.alert("Error", "No se pudieron cargar los gastos"));
+   }, [fetchExpense]);
+ 
++  const handleDelete = async (id: number) => {
++    try {
++      await deleteExpense(id);
++    } catch (e: any) {
++      Alert.alert("No se pudo eliminar", e?.message ?? "Error desconocido");
++    }
++  };
++
+   return (
+     <SafeAreaView style={{ flex: 1 }}>
+       <Header />
+@@ -24,7 +32,7 @@
+           editingItem={editingItem}
+           clearEditing={() => setEditingItem(null)}
+         />
+-        <Text className="text-xl font-semibold">Today's Expenses</Text>
++        <Text className="text-xl font-semibold">Mis gastos</Text>
+         {isFetching ? (
+           <ActivityIndicator size="large" color="red" style={{ marginTop: 40 }} />
+         ) : expenses.length > 0 ? (
+@@ -35,12 +43,12 @@
+               category={item.category}
+               amount={item.amount}
+               description={item.description}
+-              onDelete={() => deleteExpense(item.id)}
++              onDelete={() => handleDelete(item.id)}
+               onEdit={() => setEditingItem(item)}
+             />
+           ))
+         ) : (
+-          <Text className="text-center mt-4">No expenses found</Text>
++          <Text className="text-center mt-4">No hay gastos registrados</Text>
+         )}
+       </View>
+     </SafeAreaView>
+diff -ruN '--exclude=node_modules' a/src/components/Forms/TransactionForm.tsx b/src/components/Forms/TransactionForm.tsx
+--- a/src/components/Forms/TransactionForm.tsx	2026-11-16 20:20:31.440179468 -0600
++++ b/src/components/Forms/TransactionForm.tsx	2026-11-16 20:20:31.482359176 -0600
+@@ -4,7 +4,7 @@
+ import { Button, Text, TextInput, View } from "react-native";
+ 
+ type TransactionFormProps = {
+-  onSuccess: () => void;
++  onSuccess: () => void | Promise<void>;
+   editingItem: Transaction | null;
+   clearEditing: () => void;
+ };
+@@ -33,19 +33,25 @@
+       setError("Por favor, introduce una cantidad válida");
+       return;
+     }
+-    if (editingItem) {
+-      await updateExpense(editingItem.id, {
+-        amount: Number(amount),
+-        category,
+-        description,
+-      });
+-      clearEditing();
+-    } else {
+-      await addExpense({
+-        amount: Number(amount),
+-        category,
+-        description,
+-      });
++    try {
++      if (editingItem) {
++        await updateExpense(editingItem.id, {
++          amount: Number(amount),
++          category,
++          description,
++        });
++        clearEditing();
++      } else {
++        await addExpense({
++          amount: Number(amount),
++          category,
++          description,
++        });
++      }
++    } catch (e: any) {
++      // Falló el guardado: se conservan los datos escritos.
++      setError(`No se pudo guardar el gasto: ${e?.message ?? "error desconocido"}`);
++      return;
+     }
+ 
+     setError("");
+@@ -86,7 +92,7 @@
+       <View className="flex-row justify-between w-full">
+         {editingItem && (
+           <View className="flex-1 mr-2">
+-            <Button title="Cancel" onPress={handleCancel} color="gray" />
++            <Button title="Cancelar" onPress={handleCancel} color="gray" />
+           </View>
+         )}
+         <View className="flex-1">
+@@ -94,11 +100,11 @@
+             title={
+               loading
+                 ? editingItem
+-                  ? "Updating..."
+-                  : "Adding..."
++                  ? "Actualizando..."
++                  : "Agregando..."
+                 : editingItem
+-                ? "Update"
+-                : "Add Expense"
++                ? "Actualizar"
++                : "Agregar gasto"
+             }
+             onPress={handleAddExpense}
+           />
+diff -ruN '--exclude=node_modules' a/src/components/HomeScreen/Header.tsx b/src/components/HomeScreen/Header.tsx
+--- a/src/components/HomeScreen/Header.tsx	2026-11-16 20:20:31.440198449 -0600
++++ b/src/components/HomeScreen/Header.tsx	2026-11-16 20:20:31.482617991 -0600
+@@ -1,12 +1,17 @@
++import { useAuth } from "@/context/AuthProvider";
+ import { Text, View } from "react-native";
+ 
+ const Header = () => {
++  const { user } = useAuth();
++  const name =
++    user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
++
+   return (
+     <View className="px-4 py-3">
+       <Text className="text-gray-500">Bienvenido de nuevo</Text>
+-      <Text className="text-lg font-bold">Hello, Deivid</Text>
++      <Text className="text-lg font-bold">Hola, {name}</Text>
+     </View>
+   );
+ };
+ 
+-export default Header;
+\ No newline at end of file
++export default Header;
+diff -ruN '--exclude=node_modules' a/src/components/screens/LoginScreen.js b/src/components/screens/LoginScreen.js
+--- a/src/components/screens/LoginScreen.js	2026-11-16 20:20:31.440214995 -0600
++++ b/src/components/screens/LoginScreen.js	2026-11-16 20:20:31.488136508 -0600
+@@ -1,7 +1,8 @@
+ import { useRouter } from "expo-router";
+ import { useState } from "react";
+-import { Text, TouchableOpacity, View } from "react-native";
++import { Alert, Text, TouchableOpacity, View } from "react-native";
+ 
++import { useAuth } from "../../context/AuthProvider";
+ import { socialImages } from "../../Data/socialImages";
+ import PrimaryButton from "../Buttons/PrimaryButton";
+ import SocialButton from "../Buttons/SocialButton";
+@@ -9,14 +10,28 @@
+ 
+ const LoginScreen = () => {
+   const router = useRouter();
++  const { signIn } = useAuth();
+   const [email, setEmail] = useState("");
+   const [password, setPassword] = useState("");
+   const { google } = socialImages;
+ 
++  const handleSignIn = async () => {
++    if (!email || !password) {
++      Alert.alert("Datos incompletos", "Introduce tu correo y contraseña");
++      return;
++    }
++    try {
++      await signIn(email.trim(), password);
++      router.replace("/(tabs)/home");
++    } catch (error) {
++      Alert.alert("No se pudo iniciar sesión", error.message);
++    }
++  };
++
+   return (
+     <View className="px-4 gap-4 mt-8">
+       <Text className="text-[16px] font-bold text-center text-gray-700">
+-        Sign In to your account
++        Inicia sesión en tu cuenta
+       </Text>
+       <InputField
+         icon="mail"
+@@ -31,27 +46,24 @@
+         onChangeText={setPassword}
+         secureTextEntry={true}
+       />
+-      <TouchableOpacity onPress={() => console.log("Forgot Password Pressed")}>
++      <TouchableOpacity onPress={() => console.log("Olvidé mi contraseña")}>
+         <Text className="text-base font-semibold text-primary text-right">
+-          Forgot Password?
++          ¿Olvidaste tu contraseña?
+         </Text>
+       </TouchableOpacity>
+-      <PrimaryButton
+-        title="Login"
+-        onPress={() => router.replace("/(tabs)/home")}
+-      />
++      <PrimaryButton title="Iniciar sesión" onPress={handleSignIn} />
+       <View className="flex-row justify-center items-center">
+         <View className="flex-1 h-[1px] bg-gray-300" />
+-        <Text className="text-base text-gray-700 mx-4">OR</Text>
++        <Text className="text-base text-gray-700 mx-4">O</Text>
+         <View className="flex-1 h-[1px] bg-gray-300" />
+       </View>
+       <SocialButton
+         title="Google"
+         image={google}
+-        onPress={() => console.log("Google Button Pressed")}
++        onPress={() => console.log("Botón de Google presionado")}
+       />
+     </View>
+   );
+ };
+ 
+-export default LoginScreen;
+\ No newline at end of file
++export default LoginScreen;
+diff -ruN '--exclude=node_modules' a/src/components/screens/SignupScreen.js b/src/components/screens/SignupScreen.js
+--- a/src/components/screens/SignupScreen.js	2026-11-16 20:20:31.440230145 -0600
++++ b/src/components/screens/SignupScreen.js	2026-11-16 20:20:31.492640810 -0600
+@@ -1,19 +1,38 @@
+ import { useState } from "react";
+-import { Text, View } from "react-native";
++import { Alert, Text, View } from "react-native";
+ 
++import { useAuth } from "../../context/AuthProvider";
+ import PrimaryButton from "../Buttons/PrimaryButton";
+ import InputField from "../Forms/InputField";
+ 
+ const SignupScreen = () => {
++  const { signUp } = useAuth();
+   const [email, setEmail] = useState("");
+   const [password, setPassword] = useState("");
+   const [confirmPassword, setConfirmPassword] = useState("");
+   const [name, setName] = useState("");
+ 
++  const handleSignUp = async () => {
++    if (!name || !email || !password || !confirmPassword) {
++      Alert.alert("Datos incompletos", "Completa todos los campos");
++      return;
++    }
++    if (password !== confirmPassword) {
++      Alert.alert("Error", "Las contraseñas no coinciden");
++      return;
++    }
++    try {
++      await signUp(email.trim(), password, name.trim());
++      Alert.alert("Cuenta creada", "Tu cuenta se creó correctamente");
++    } catch (error) {
++      Alert.alert("No se pudo registrar", error.message);
++    }
++  };
++
+   return (
+     <View className="px-4 gap-4 mt-8">
+       <Text className="text-[16px] font-bold text-center text-gray-700">
+-        Create an account
++        Crea una cuenta
+       </Text>
+       <InputField
+         icon="person"
+@@ -41,13 +60,9 @@
+         onChangeText={setConfirmPassword}
+         secureTextEntry={true}
+       />
+-
+-      <PrimaryButton
+-        title="Sign Up"
+-        onPress={() => console.log("Se ha pulsado el botón de registro")}
+-      />
++      <PrimaryButton title="Registrarse" onPress={handleSignUp} />
+     </View>
+   );
+ };
+ 
+-export default SignupScreen;
+\ No newline at end of file
++export default SignupScreen;
+diff -ruN '--exclude=node_modules' a/src/context/AuthProvider.tsx b/src/context/AuthProvider.tsx
+--- a/src/context/AuthProvider.tsx	2026-11-16 20:20:31.440247477 -0600
++++ b/src/context/AuthProvider.tsx	2026-11-16 20:20:31.482518901 -0600
+@@ -6,7 +6,7 @@
+     session: Session | null;
+     loading: boolean;
+ 
+-    signUp:(email:string,password:string)=>Promise<void>;
++    signUp:(email:string,password:string,fullName?:string)=>Promise<void>;
+     signIn:(email:string,password:string)=>Promise<void>;
+     signOut:()=>Promise<void>;
+ }
+@@ -41,8 +41,12 @@
+         }
+     },[])
+ 
+-    const signUp = async (email: string, password: string) => {
+-        const { error } = await supabase.auth.signUp({ email, password })
++    const signUp = async (email: string, password: string, fullName?: string) => {
++        const { error } = await supabase.auth.signUp({
++            email,
++            password,
++            options: { data: { full_name: fullName } },
++        })
+         if (error) {
+             throw error;
+         }
+diff -ruN '--exclude=node_modules' a/src/hooks/useTranasaction.ts b/src/hooks/useTranasaction.ts
+--- a/src/hooks/useTranasaction.ts	2026-11-16 20:20:31.440278185 -0600
++++ b/src/hooks/useTranasaction.ts	2026-11-16 20:20:31.443613358 -0600
+@@ -2,6 +2,8 @@
+ import { supabase } from "@/lib/supabase";
+ import { useCallback, useState } from "react";
+ 
++// Los errores de Supabase se PROPAGAN (throw) para que quien llama
++// (formulario / pantalla) sepa si la operación realmente se guardó.
+ export const useTransaction = () => {
+   const [expenses, setExpenses] = useState<Transaction[]>([]);
+   const [isFetching, setIsFetching] = useState<boolean>(false);
+@@ -9,70 +11,50 @@
+ 
+   const fetchExpense = useCallback(async () => {
+     setIsFetching(true);
+-
+-    const { data, error } = await supabase
+-      .from("expenses")
+-      .select("*")
+-      .order("id", { ascending: true });
+-
+-    if (error) {
+-      console.log("No se pudo obtener el gasto: ", error.message);
++    try {
++      const { data, error } = await supabase
++        .from("expenses")
++        .select("*")
++        .order("id", { ascending: true });
++      if (error) throw error;
++      setExpenses(data || []);
++    } catch (error: any) {
++      console.log("No se pudieron obtener los gastos: ", error.message);
++      throw error;
++    } finally {
+       setIsFetching(false);
+-      return;
+     }
+-
+-    setExpenses(data || []);
+-    console.log("Gastos recuperados: ", data);
+-    setIsFetching(false);
+   }, []);
+ 
+   const addExpense = async ({ amount, category, description }: TransactionInput) => {
+     if (loading) return;
+     setLoading(true);
+-
+-    const { data, error } = await supabase
+-      .from("expenses")
+-      .insert([
+-        {
+-          amount: Number(amount),
+-          category,
+-          description,
+-        },
+-      ]);
+-
+-    if (error) {
++    try {
++      const { error } = await supabase
++        .from("expenses")
++        .insert([{ amount: Number(amount), category, description }]);
++      if (error) throw error;
++      await fetchExpense();
++    } catch (error: any) {
+       console.log("No se pudo añadir el gasto: ", error.message);
++      throw error;
++    } finally {
+       setLoading(false);
+-      return;
+     }
+-
+-    await fetchExpense();
+-    console.log("El gasto se ha añadido correctamente! ", data);
+-    setLoading(false);
+   };
+ 
+   const deleteExpense = async (id: number) => {
+-    const { error } = await supabase
+-      .from("expenses")
+-      .delete()
+-      .eq("id", id);
+-
++    const { error } = await supabase.from("expenses").delete().eq("id", id);
+     if (error) {
+       console.log("No se pudo eliminar el gasto: ", error.message);
+-      return;
++      throw error;
+     }
+-
+     setExpenses((current) => current.filter((expense) => expense.id !== id));
+-    console.log("El gasto se ha eliminado correctamente!");
+   };
+ 
+   const updateExpense = async (
+     id: number,
+-    updateData: {
+-      amount: number;
+-      category: string;
+-      description: string;
+-    }
++    updateData: { amount: number; category: string; description: string }
+   ) => {
+     const { data, error } = await supabase
+       .from("expenses")
+@@ -80,17 +62,14 @@
+       .eq("id", id)
+       .select()
+       .single();
+-
+     if (error) {
+       console.log("No se pudo actualizar el gasto: ", error.message);
+-      return;
++      throw error;
+     }
+-
+     setExpenses((current) =>
+       current.map((expense) => (expense.id === id ? data : expense))
+     );
+-    console.log("El gasto se ha actualizado correctamente!");
+   };
+ 
+   return { expenses, fetchExpense, isFetching, loading, addExpense, deleteExpense, updateExpense };
+-};
+\ No newline at end of file
++};

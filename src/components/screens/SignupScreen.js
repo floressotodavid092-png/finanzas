@@ -1,19 +1,38 @@
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 
+import { useAuth } from "../../context/AuthProvider";
 import PrimaryButton from "../Buttons/PrimaryButton";
 import InputField from "../Forms/InputField";
 
 const SignupScreen = () => {
+  const { signUp } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
 
+  const handleSignUp = async () => {
+    if (!name || !email || !password || !confirmPassword) {
+      Alert.alert("Datos incompletos", "Completa todos los campos");
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Las contraseñas no coinciden");
+      return;
+    }
+    try {
+      await signUp(email.trim(), password, name.trim());
+      Alert.alert("Cuenta creada", "Tu cuenta se creó correctamente");
+    } catch (error) {
+      Alert.alert("No se pudo registrar", error.message);
+    }
+  };
+
   return (
     <View className="px-4 gap-4 mt-8">
       <Text className="text-[16px] font-bold text-center text-gray-700">
-        Create an account
+        Crea una cuenta
       </Text>
       <InputField
         icon="person"
@@ -41,11 +60,7 @@ const SignupScreen = () => {
         onChangeText={setConfirmPassword}
         secureTextEntry={true}
       />
-
-      <PrimaryButton
-        title="Sign Up"
-        onPress={() => console.log("Se ha pulsado el botón de registro")}
-      />
+      <PrimaryButton title="Registrarse" onPress={handleSignUp} />
     </View>
   );
 };

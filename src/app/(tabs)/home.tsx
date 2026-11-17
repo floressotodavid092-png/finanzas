@@ -4,7 +4,7 @@ import Header from "@/components/HomeScreen/Header";
 import { Transaction } from "@/Data/types/transactions";
 import { useTransaction } from "@/hooks/useTranasaction";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
@@ -12,8 +12,16 @@ const Home = () => {
   const [editingItem, setEditingItem] = useState<Transaction | null>(null);
 
   useEffect(() => {
-    fetchExpense();
+    fetchExpense().catch(() => Alert.alert("Error", "No se pudieron cargar los gastos"));
   }, [fetchExpense]);
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteExpense(id);
+    } catch (e: any) {
+      Alert.alert("No se pudo eliminar", e?.message ?? "Error desconocido");
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -24,7 +32,7 @@ const Home = () => {
           editingItem={editingItem}
           clearEditing={() => setEditingItem(null)}
         />
-        <Text className="text-xl font-semibold">Today's Expenses</Text>
+        <Text className="text-xl font-semibold">Mis gastos</Text>
         {isFetching ? (
           <ActivityIndicator size="large" color="red" style={{ marginTop: 40 }} />
         ) : expenses.length > 0 ? (
@@ -35,12 +43,12 @@ const Home = () => {
               category={item.category}
               amount={item.amount}
               description={item.description}
-              onDelete={() => deleteExpense(item.id)}
+              onDelete={() => handleDelete(item.id)}
               onEdit={() => setEditingItem(item)}
             />
           ))
         ) : (
-          <Text className="text-center mt-4">No expenses found</Text>
+          <Text className="text-center mt-4">No hay gastos registrados</Text>
         )}
       </View>
     </SafeAreaView>
